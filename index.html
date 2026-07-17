@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVATalk — Somewhere out there, someone's online too.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#0a0c16;
+    --bg-1:#11142399;
+    --panel:#141830;
+    --panel-2:#1b2040;
+    --line:#2a2f52;
+    --flare:#ff5a3c;
+    --flare-2:#ff9457;
+    --violet:#7b61ff;
+    --violet-2:#5a8dff;
+    --text-0:#f4f2ff;
+    --text-1:#b7bad6;
+    --text-2:#7d81a4;
+    --radius:16px;
+    --ff-display:'Space Grotesk', sans-serif;
+    --ff-body:'Inter', sans-serif;
+    --ff-mono:'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-0);
+    color:var(--text-0);
+    font-family:var(--ff-body);
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important;}
+  }
+
+  html{scrollbar-width:thin; scrollbar-color:var(--line) transparent;}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:10px; border:2px solid var(--bg-0);}
+  ::-webkit-scrollbar-thumb:hover{background:var(--flare-2);}
+
+  /* ---------- Universe: fixed, whole-page starfield that turns as you scroll ---------- */
+  .universe{
+    position:fixed;
+    top:50%; left:50%;
+    width:240vmax; height:240vmax;
+    transform:translate(-50%,-50%) rotate(0deg);
+    transform-origin:center center;
+    z-index:-3;
+    pointer-events:none;
+    will-change:transform;
+  }
+  .universe .layer{position:absolute; inset:0;}
+  .universe .stars-far{
+    background-image:
+      radial-gradient(1px 1px at 6% 12%, rgba(255,255,255,0.85) 50%, transparent 51%),
+      radial-gradient(1px 1px at 18% 46%, rgba(255,255,255,0.6) 50%, transparent 51%),
+      radial-gradient(1px 1px at 33% 8%, rgba(255,255,255,0.7) 50%, transparent 51%),
+      radial-gradient(1px 1px at 47% 63%, rgba(255,255,255,0.55) 50%, transparent 51%),
+      radial-gradient(1px 1px at 61% 27%, rgba(255,255,255,0.75) 50%, transparent 51%),
+      radial-gradient(1px 1px at 74% 58%, rgba(255,255,255,0.5) 50%, transparent 51%),
+      radial-gradient(1px 1px at 88% 19%, rgba(255,255,255,0.65) 50%, transparent 51%),
+      radial-gradient(1px 1px at 95% 71%, rgba(255,255,255,0.55) 50%, transparent 51%);
+    background-repeat:repeat;
+    background-size:15% 15%;
+    opacity:0.55;
+  }
+  .universe .stars-near{
+    background-image:
+      radial-gradient(1.6px 1.6px at 12% 22%, rgba(255,255,255,0.95) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 38% 66%, rgba(255,255,255,0.8) 50%, transparent 51%),
+      radial-gradient(1.8px 1.8px at 58% 12%, rgba(255,255,255,0.9) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 80% 48%, rgba(255,255,255,0.75) 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 92% 82%, rgba(255,255,255,0.85) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 24% 88%, rgba(255,255,255,0.7) 50%, transparent 51%);
+    background-repeat:repeat;
+    background-size:26% 26%;
+    opacity:0.75;
+    transition:transform .05s linear;
+  }
+  .universe .nebula{
+    background-image:
+      radial-gradient(20% 16% at 18% 24%, rgba(255,90,60,0.10), transparent 70%),
+      radial-gradient(18% 14% at 78% 62%, rgba(123,97,255,0.10), transparent 70%),
+      radial-gradient(16% 13% at 55% 82%, rgba(90,141,255,0.08), transparent 70%),
+      radial-gradient(14% 12% at 34% 70%, rgba(255,148,87,0.07), transparent 70%);
+    opacity:0.9;
+    transition:transform .05s linear;
+  }
+  @media (max-width:600px){ .universe{opacity:0.7;} }
+
+  /* ---------- Shooting stars: brief streaks that fall across the background ---------- */
+  .shooting-stars{
+    position:fixed; inset:0;
+    z-index:-1;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .shooting-star{
+    position:absolute;
+    top:0; left:0;
+    width:1px; height:1px;
+    transform:rotate(var(--angle, 35deg));
+    transform-origin:0 0;
+  }
+  .shooting-star i{
+    position:absolute;
+    top:0; left:0;
+    width:2px; height:2px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 0 6px 1px rgba(255,255,255,0.85);
+    opacity:0;
+    animation:star-fall var(--dur, 6s) linear var(--delay, 0s) infinite;
+  }
+  .shooting-star i::after{
+    content:'';
+    position:absolute;
+    top:50%; right:1px;
+    width:120px; height:1.5px;
+    margin-top:-0.75px;
+    border-radius:2px;
+    background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.9));
+  }
+  @keyframes star-fall{
+    0%{transform:translateX(0); opacity:0;}
+    2%{opacity:1;}
+    9%{opacity:1;}
+    16%{transform:translateX(300px); opacity:0;}
+    100%{transform:translateX(300px); opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){ .shooting-stars{display:none;} }
+
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit; cursor:pointer;}
+  ::selection{background:var(--flare); color:#0a0c16;}
+
+  /* ---------- Top-left auth button ---------- */
+  .auth-launcher{
+    position:fixed;
+    top:clamp(14px, 3vw, 28px);
+    left:clamp(14px, 3vw, 28px);
+    z-index:60;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px 10px 12px;
+    background:rgba(20,24,48,0.65);
+    border:1px solid var(--line);
+    border-radius:999px;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    color:var(--text-0);
+    font-family:var(--ff-display);
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.01em;
+    transition:border-color .25s ease, transform .25s ease, background .25s ease;
+  }
+  .auth-launcher:hover{
+    border-color:var(--flare);
+    transform:translateY(-1px);
+    background:rgba(27,32,64,0.8);
+  }
+  .auth-launcher .mark{
+    width:22px; height:22px;
+    border-radius:50%;
+    background:radial-gradient(circle at 32% 30%, var(--flare-2), var(--flare) 45%, var(--violet) 100%);
+    box-shadow:0 0 12px rgba(255,90,60,0.55);
+    flex-shrink:0;
+  }
+  .auth-launcher .divider{width:1px; height:14px; background:var(--line);}
+  .auth-launcher .action{color:var(--text-1); font-weight:500;}
+  .auth-launcher .action:hover{color:var(--text-0);}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:120px 20px 80px;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:'';
+    position:absolute; left:0; right:0; bottom:0;
+    height:200px;
+    background:linear-gradient(to bottom, transparent, var(--bg-0));
+    z-index:0;
+    pointer-events:none;
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(60% 50% at 50% 38%, rgba(255,90,60,0.20), transparent 70%),
+      radial-gradient(45% 40% at 72% 60%, rgba(123,97,255,0.20), transparent 70%),
+      radial-gradient(45% 40% at 22% 65%, rgba(90,141,255,0.14), transparent 70%);
+    z-index:0;
+  }
+
+  /* Signal search: a quiet ping that finds someone else awake, out in the dark */
+  .signal-system{
+    position:absolute; top:26%; left:50%;
+    width:1px; height:1px;
+    z-index:0;
+  }
+  .signal-beam{
+    position:absolute; top:0; left:0;
+    width:230px; height:1px;
+    transform-origin:left center;
+    transform:rotate(-18deg) scaleX(0);
+    background:linear-gradient(90deg, rgba(255,148,87,0.85), rgba(123,97,255,0.15));
+    animation:beam-draw 9s ease-in-out infinite;
+  }
+  .match-node{
+    position:absolute; top:0; left:0;
+    width:8px; height:8px;
+    transform:translate(216px, -70px) scale(0.3);
+    border-radius:50%;
+    background:radial-gradient(circle, #fff, var(--violet-2));
+    opacity:0;
+    animation:match-in 9s ease-in-out infinite;
+  }
+  .match-node::after{
+    content:'';
+    position:absolute; inset:-9px;
+    border-radius:50%;
+    border:1px solid rgba(123,97,255,0.5);
+  }
+  @keyframes beam-draw{
+    0%, 34%{transform:rotate(-18deg) scaleX(0); opacity:0;}
+    46%{opacity:0.9;}
+    52%, 78%{transform:rotate(-18deg) scaleX(1); opacity:0.7;}
+    92%, 100%{transform:rotate(-18deg) scaleX(0); opacity:0;}
+  }
+  @keyframes match-in{
+    0%, 38%{opacity:0; transform:translate(216px,-70px) scale(0.3);}
+    52%, 78%{opacity:1; transform:translate(216px,-70px) scale(1);}
+    94%, 100%{opacity:0; transform:translate(216px,-70px) scale(0.4);}
+  }
+  @media (max-width:720px){ .signal-system{display:none;} }
+
+  .eyebrow{
+    position:relative; z-index:1;
+    font-family:var(--ff-mono);
+    font-size:12px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--flare-2);
+    margin-bottom:22px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before, .eyebrow::after{content:''; width:26px; height:1px; background:linear-gradient(90deg, transparent, var(--flare-2));}
+  .eyebrow::after{background:linear-gradient(90deg, var(--flare-2), transparent);}
+
+  .hero h1{
+    position:relative; z-index:1;
+    font-family:var(--ff-display);
+    font-weight:700;
+    font-size:clamp(2.4rem, 6.4vw, 5.4rem);
+    line-height:1.04;
+    letter-spacing:-0.02em;
+    max-width:16ch;
+  }
+  .hero h1 .accent{
+    background:linear-gradient(100deg, var(--flare-2), var(--flare) 45%, var(--violet));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p{
+    position:relative; z-index:1;
+    margin-top:22px;
+    max-width:46ch;
+    color:var(--text-1);
+    font-size:clamp(1rem, 1.6vw, 1.15rem);
+    line-height:1.6;
+  }
+  .hero-ctas{
+    position:relative; z-index:1;
+    margin-top:38px;
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+  }
+  .btn{
+    position:relative;
+    font-family:var(--ff-display);
+    font-weight:600;
+    font-size:15px;
+    padding:14px 26px;
+    border-radius:999px;
+    border:1px solid transparent;
+    overflow:hidden;
+    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .btn-primary{
+    color:#0a0c16;
+    background:linear-gradient(100deg, var(--flare-2), var(--flare));
+    box-shadow:0 8px 30px -8px rgba(255,90,60,0.6);
+  }
+  .btn-primary::after{
+    content:'';
+    position:absolute; top:0; left:-60%;
+    width:40%; height:100%;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.45), transparent);
+    transform:skewX(-20deg);
+    transition:left .55s ease;
+  }
+  .btn-primary:hover::after{left:130%;}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 36px -8px rgba(255,90,60,0.75);}
+  .btn-ghost{
+    color:var(--text-0);
+    background:transparent;
+    border-color:var(--line);
+  }
+  .btn-ghost:hover{border-color:var(--text-1); transform:translateY(-2px);}
+
+  .scroll-cue{
+    position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+    z-index:1;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    color:var(--text-2);
+    font-family:var(--ff-mono);
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+  }
+  .scroll-cue .stick{
+    width:1px; height:34px;
+    background:linear-gradient(var(--text-2), transparent);
+    position:relative;
+    overflow:hidden;
+  }
+  .scroll-cue .stick::after{
+    content:''; position:absolute; left:0; top:-100%; width:100%; height:100%;
+    background:linear-gradient(var(--flare-2), transparent);
+    animation:cue-drop 2s ease-in-out infinite;
+  }
+  @keyframes cue-drop{ 0%{top:-100%;} 60%{top:100%;} 100%{top:100%;} }
+
+  /* ---------- Section shell ---------- */
+  section.reveal-section{
+    padding:110px 24px;
+    max-width:1160px;
+    margin:0 auto;
+  }
+  .section-head{
+    text-align:center;
+    max-width:56ch;
+    margin:0 auto 64px;
+  }
+  .section-head .eyebrow{justify-content:center;}
+  .section-head h2{
+    font-family:var(--ff-display);
+    font-weight:600;
+    font-size:clamp(1.7rem, 3.4vw, 2.6rem);
+    letter-spacing:-0.01em;
+  }
+  .section-head p{
+    margin-top:14px;
+    color:var(--text-1);
+    line-height:1.6;
+  }
+
+  .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1);
+  }
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* Cursor-follow spotlight, shared by cards that opt in */
+  .spotlight{position:relative; overflow:hidden;}
+  .spotlight::before{
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%), rgba(255,148,87,0.12), transparent 72%);
+    opacity:0;
+    transition:opacity .35s ease;
+    pointer-events:none;
+  }
+  .spotlight:hover::before{opacity:1;}
+
+  /* ---------- Features ---------- */
+  .feature-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:20px;
+  }
+  .feature-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 24px;
+    transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+  }
+  .feature-card:hover{transform:translateY(-4px); border-color:rgba(255,148,87,0.4); box-shadow:0 20px 40px -24px rgba(0,0,0,0.6);}
+  .feature-grid .reveal:nth-child(1){transition-delay:0s;}
+  .feature-grid .reveal:nth-child(2){transition-delay:.08s;}
+  .feature-grid .reveal:nth-child(3){transition-delay:.16s;}
+  .feature-grid .reveal:nth-child(4){transition-delay:.24s;}
+  .feature-card .tag{
+    font-family:var(--ff-mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--flare-2);
+    text-transform:uppercase;
+  }
+  .feature-card .glyph{
+    width:38px; height:38px;
+    margin:16px 0 18px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color .3s ease, transform .3s ease;
+  }
+  .feature-card:hover .glyph{border-color:rgba(255,148,87,0.5); transform:scale(1.06);}
+  .feature-card .glyph svg{width:18px; height:18px; stroke:var(--text-0);}
+  .feature-card h3{
+    font-family:var(--ff-display);
+    font-size:1.1rem;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .feature-card p{color:var(--text-1); font-size:0.92rem; line-height:1.55;}
+
+  /* ---------- Chat mock ---------- */
+  .chat-mock{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:22px;
+    max-width:420px;
+    margin:0 auto;
+  }
+  .chat-mock .bubble{
+    max-width:78%;
+    padding:10px 14px;
+    border-radius:14px;
+    font-size:0.88rem;
+    line-height:1.4;
+    margin-bottom:10px;
+  }
+  .chat-mock .them{background:var(--bg-0); border:1px solid var(--line); border-bottom-left-radius:4px;}
+  .chat-mock .me{
+    margin-left:auto;
+    background:linear-gradient(100deg, var(--flare-2), var(--flare));
+    color:#0a0c16;
+    border-bottom-right-radius:4px;
+  }
+  .chat-mock .meta{font-family:var(--ff-mono); font-size:10px; color:var(--text-2); margin:4px 2px 14px; text-align:right;}
+  .bubble.typing{display:flex; align-items:center; gap:4px; width:fit-content; padding:12px 16px; margin-bottom:0;}
+  .bubble.typing span{width:6px; height:6px; border-radius:50%; background:rgba(10,12,22,0.55); animation:typing-bounce 1.2s infinite ease-in-out;}
+  .bubble.typing span:nth-child(2){animation-delay:.15s;}
+  .bubble.typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes typing-bounce{
+    0%, 60%, 100%{transform:translateY(0); opacity:0.5;}
+    30%{transform:translateY(-4px); opacity:1;}
+  }
+
+  /* ---------- Platforms constellation ---------- */
+  .platform-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0;
+    flex-wrap:wrap;
+    position:relative;
+    padding:40px 0 10px;
+  }
+  .platform-node{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding:0 34px;
+    position:relative;
+  }
+  .platform-node .ring{
+    width:56px; height:56px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--panel);
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color .3s ease, box-shadow .3s ease;
+  }
+  .platform-node:hover .ring{border-color:var(--flare-2); box-shadow:0 0 24px -4px rgba(255,148,87,0.5);}
+  .platform-node svg{width:22px; height:22px; stroke:var(--text-0);}
+  .platform-node span{font-family:var(--ff-mono); font-size:11px; color:var(--text-2); letter-spacing:0.08em; text-transform:uppercase;}
+  .platform-node:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    top:28px; right:-4px;
+    width:38px; height:1px;
+    background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
+  }
+  .platform-node.center .ring{
+    background:radial-gradient(circle at 35% 30%, var(--flare-2), var(--flare) 60%, var(--violet));
+    border-color:transparent;
+    box-shadow:0 0 30px -2px rgba(255,90,60,0.6);
+  }
+  .platform-node.center svg{stroke:#0a0c16;}
+
+  /* ---------- Quote strip ---------- */
+  .flow-section{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:100px 24px;
+  }
+  .flow-steps{
+    max-width:1160px; margin:0 auto;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:20px;
+  }
+  .flow-step{
+    position:relative;
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:30px 24px;
+    transition:transform .3s ease, border-color .3s ease;
+  }
+  .flow-step:hover{transform:translateY(-4px); border-color:rgba(255,148,87,0.35);}
+  .flow-steps .reveal:nth-child(1){transition-delay:0s;}
+  .flow-steps .reveal:nth-child(2){transition-delay:.1s;}
+  .flow-steps .reveal:nth-child(3){transition-delay:.2s;}
+  .flow-step .num{
+    font-family:var(--ff-mono);
+    font-size:13px;
+    color:var(--flare-2);
+    letter-spacing:0.1em;
+    transition:letter-spacing .3s ease;
+  }
+  .flow-step:hover .num{letter-spacing:0.22em;}
+  .flow-step h3{
+    font-family:var(--ff-display);
+    font-weight:600;
+    font-size:1.1rem;
+    margin:14px 0 8px;
+  }
+  .flow-step p{color:var(--text-1); font-size:0.92rem; line-height:1.55;}
+  .flow-step:not(:last-child)::after{
+    content:'→';
+    position:absolute;
+    top:50%; right:-26px;
+    transform:translateY(-50%);
+    color:var(--text-2);
+    font-size:18px;
+    display:none;
+  }
+  @media (min-width:860px){ .flow-step:not(:last-child)::after{display:block;} }
+  @media (max-width:720px){ .flow-steps{grid-template-columns:1fr;} }
+
+  .quote-strip{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:70px 24px;
+    text-align:center;
+  }
+  .quote-strip blockquote{
+    font-family:var(--ff-display);
+    font-weight:500;
+    font-size:clamp(1.3rem, 2.6vw, 1.9rem);
+    max-width:34ch;
+    margin:0 auto;
+    line-height:1.4;
+  }
+  .quote-strip cite{
+    display:block;
+    margin-top:20px;
+    font-family:var(--ff-mono);
+    font-style:normal;
+    font-size:12px;
+    color:var(--text-2);
+    letter-spacing:0.08em;
+  }
+
+  /* ---------- Footer CTA ---------- */
+  /* ---------- FAQ accordion ---------- */
+  .faq-list{
+    max-width:720px; margin:0 auto;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .faq-item{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    transition:border-color .3s ease;
+  }
+  .faq-item.open{border-color:rgba(255,148,87,0.4);}
+  .faq-q{
+    width:100%;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:19px 22px;
+    background:transparent;
+    border:none;
+    color:var(--text-0);
+    font-family:var(--ff-display);
+    font-weight:600;
+    font-size:0.98rem;
+    text-align:left;
+  }
+  .faq-icon{
+    font-family:var(--ff-mono);
+    color:var(--flare-2);
+    font-size:19px;
+    line-height:1;
+    flex-shrink:0;
+    transition:transform .3s ease;
+  }
+  .faq-item.open .faq-icon{transform:rotate(45deg);}
+  .faq-a{
+    display:grid;
+    grid-template-rows:0fr;
+    transition:grid-template-rows .4s cubic-bezier(.2,.8,.25,1);
+  }
+  .faq-a > div{overflow:hidden;}
+  .faq-item.open .faq-a{grid-template-rows:1fr;}
+  .faq-a p{padding:0 22px 20px; color:var(--text-1); font-size:0.92rem; line-height:1.6;}
+
+  .footer-cta{
+    text-align:center;
+    padding:120px 24px 100px;
+  }
+  .footer-cta h2{
+    font-family:var(--ff-display);
+    font-weight:700;
+    font-size:clamp(1.9rem, 4.4vw, 3rem);
+    max-width:14ch;
+    margin:0 auto 26px;
+  }
+  footer{
+    border-top:1px solid var(--line);
+    padding:28px 24px;
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:12px;
+    color:var(--text-2);
+    font-family:var(--ff-mono);
+    font-size:12px;
+    max-width:1160px;
+    margin:0 auto;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-layer{
+    position:fixed; inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    visibility:hidden;
+    pointer-events:none;
+  }
+  .modal-layer.open{visibility:visible; pointer-events:auto;}
+  .modal-backdrop{
+    position:absolute; inset:0;
+    background:rgba(6,7,14,0.7);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    opacity:0;
+    transition:opacity .35s ease;
+  }
+  .modal-layer.open .modal-backdrop{opacity:1;}
+
+  .modal-card{
+    position:relative;
+    width:100%;
+    max-width:420px;
+    max-height:88vh;
+    overflow-y:auto;
+    background:linear-gradient(165deg, #161a34, #10132a);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:34px 30px 30px;
+    transform:scale(0.85) translateY(24px);
+    opacity:0;
+    transition:transform .42s cubic-bezier(.2,.9,.25,1.2), opacity .3s ease;
+  }
+  .modal-layer.open .modal-card{transform:scale(1) translateY(0); opacity:1;}
+
+  .modal-card::-webkit-scrollbar{width:6px;}
+  .modal-card::-webkit-scrollbar-thumb{background:var(--line); border-radius:6px;}
+
+  .modal-close{
+    position:absolute; top:18px; right:18px;
+    width:32px; height:32px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-1);
+    transition:background .2s ease, color .2s ease, transform .2s ease;
+  }
+  .modal-close:hover{background:rgba(255,255,255,0.08); color:var(--text-0); transform:rotate(90deg);}
+
+  .modal-mark{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:radial-gradient(circle at 32% 30%, var(--flare-2), var(--flare) 45%, var(--violet) 100%);
+    box-shadow:0 0 16px rgba(255,90,60,0.5);
+    margin-bottom:16px;
+  }
+  .modal-card h2{
+    font-family:var(--ff-display);
+    font-weight:700;
+    font-size:1.5rem;
+  }
+  .modal-card .sub{
+    color:var(--text-1);
+    font-size:0.9rem;
+    margin-top:6px;
+    margin-bottom:26px;
+  }
+
+  .mode-switch{
+    display:flex;
+    background:var(--bg-0);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px;
+    margin-bottom:26px;
+  }
+  .mode-switch button{
+    flex:1;
+    border:none;
+    background:transparent;
+    color:var(--text-2);
+    font-family:var(--ff-display);
+    font-weight:600;
+    font-size:13px;
+    padding:10px 0;
+    border-radius:999px;
+    transition:color .25s ease;
+    position:relative;
+    z-index:1;
+  }
+  .mode-switch{position:relative;}
+  .mode-switch .thumb{
+    position:absolute;
+    top:4px; bottom:4px; left:4px;
+    width:calc(50% - 4px);
+    background:linear-gradient(100deg, var(--flare-2), var(--flare));
+    border-radius:999px;
+    transition:transform .35s cubic-bezier(.2,.8,.25,1);
+  }
+  .mode-switch.signup .thumb{transform:translateX(100%);}
+  .mode-switch button.active{color:#0a0c16;}
+  .mode-switch button:not(.active){color:var(--text-1);}
+
+  .field{
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-family:var(--ff-mono);
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--text-2);
+    margin-bottom:7px;
+  }
+  .field input, .field select{
+    width:100%;
+    background:var(--bg-0);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    color:var(--text-0);
+    font-family:var(--ff-body);
+    font-size:14px;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--flare-2);
+    box-shadow:0 0 0 3px rgba(255,148,87,0.15);
+  }
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .field select{appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%237d81a4'/></svg>"); background-repeat:no-repeat; background-position:right 14px center;}
+
+  .signup-extra{
+    display:grid;
+    grid-template-rows:0fr;
+    transition:grid-template-rows .4s cubic-bezier(.2,.8,.25,1);
+  }
+  .signup-extra > div{overflow:hidden;}
+  .mode-switch.signup ~ form .signup-extra,
+  form.mode-signup .signup-extra{grid-template-rows:1fr;}
+
+  .helper-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin:-4px 0 20px;
+    font-size:12.5px;
+  }
+  .helper-row a{color:var(--flare-2);}
+  .helper-row a:hover{text-decoration:underline;}
+  .helper-row label{display:flex; align-items:center; gap:7px; color:var(--text-1); cursor:pointer;}
+
+  .submit-btn{
+    width:100%;
+    padding:14px 0;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(100deg, var(--flare-2), var(--flare));
+    color:#0a0c16;
+    font-family:var(--ff-display);
+    font-weight:700;
+    font-size:15px;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .submit-btn:hover{transform:translateY(-2px); box-shadow:0 10px 30px -8px rgba(255,90,60,0.65);}
+  .submit-btn:active{transform:translateY(0);}
+
+  .form-note{
+    text-align:center;
+    margin-top:16px;
+    font-size:12px;
+    color:var(--text-2);
+    line-height:1.5;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:26px; left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text-0);
+    padding:13px 20px;
+    border-radius:12px;
+    font-size:13px;
+    font-family:var(--ff-body);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease, transform .3s ease;
+    z-index:200;
+    display:flex; align-items:center; gap:10px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .dot{width:8px; height:8px; border-radius:50%; background:var(--flare-2); flex-shrink:0;}
+
+  @media (max-width:520px){
+    .field-row{grid-template-columns:1fr;}
+    .modal-card{padding:28px 20px 24px;}
+    .platform-node{padding:0 16px;}
+    .platform-node:not(:last-child)::after{width:16px;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- Fixed background universe, rotates as the page is scrolled -->
+  <div class="universe" aria-hidden="true">
+    <div class="layer stars-far"></div>
+    <div class="layer stars-near"></div>
+    <div class="layer nebula"></div>
+  </div>
+
+  <!-- Shooting stars, falling intermittently across the background -->
+  <div class="shooting-stars" aria-hidden="true">
+    <span class="shooting-star" style="top:6%; left:72%; --angle:34deg; --dur:6.5s; --delay:0s;"><i></i></span>
+    <span class="shooting-star" style="top:16%; left:38%; --angle:29deg; --dur:8s; --delay:2.6s;"><i></i></span>
+    <span class="shooting-star" style="top:4%; left:88%; --angle:40deg; --dur:5.5s; --delay:5.2s;"><i></i></span>
+    <span class="shooting-star" style="top:24%; left:18%; --angle:31deg; --dur:9s; --delay:1.4s;"><i></i></span>
+    <span class="shooting-star" style="top:11%; left:55%; --angle:37deg; --dur:7s; --delay:6.8s;"><i></i></span>
+    <span class="shooting-star" style="top:30%; left:80%; --angle:26deg; --dur:10s; --delay:3.9s;"><i></i></span>
+  </div>
+
+  <!-- Top-left auth launcher -->
+  <button class="auth-launcher" id="openSignin" aria-haspopup="dialog">
+    <span class="mark"></span>
+    NOVATalk
+    <span class="divider"></span>
+    <span class="action">Sign in</span>
+    <span style="color:var(--text-2)">/</span>
+    <span class="action" id="openSignup">Sign up</span>
+  </button>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-bg"></div>
+    <div class="signal-system"><div class="signal-beam"></div><div class="match-node"></div></div>
+
+    <p class="eyebrow">Meet someone new, right now</p>
+    <h1>Somewhere out there,<br><span class="accent">someone's online too.</span></h1>
+    <p>NOVATalk sends out a quiet signal and matches you with a real person, live, right now. Talk, skip, or stick around — add them as a friend and keep the thread going in a community after.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-primary" id="heroSignup">Create an account</button>
+      <button class="btn btn-ghost" id="heroSignin">I already have one</button>
+    </div>
+
+    <div class="scroll-cue"><span>Scroll</span><span class="stick"></span></div>
+  </header>
+
+  <!-- Features -->
+  <section class="reveal-section">
+    <div class="section-head reveal">
+      <p class="eyebrow">Why NOVATalk</p>
+      <h2>Matched with someone, not searching a directory</h2>
+      <p>NOVATalk pairs you with a real stranger the moment you ask for one, then gets out of the way — while a verified identity underneath keeps the whole thing accountable.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card reveal spotlight">
+        <p class="tag">Matched</p>
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="12" r="3"/><circle cx="17" cy="12" r="3"/><path d="M10 12h4"/></svg></div>
+        <h3>One tap, one real person</h3>
+        <p>Send out a signal and get paired instantly with whoever else is listening right now — no browsing, no profiles to scroll through first.</p>
+      </div>
+      <div class="feature-card reveal spotlight">
+        <p class="tag">Accountable</p>
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3>Anonymous to them, not to us</h3>
+        <p>Every account is email‑verified before it can chat, so a block or a report actually means something instead of vanishing into a new session.</p>
+      </div>
+      <div class="feature-card reveal spotlight">
+        <p class="tag">Kept</p>
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.4-9.5-8.5C1 9 2.4 5.6 5.7 5c2-.4 3.7.6 4.9 2.3C11.8 5.6 13.5 4.6 15.5 5c3.3.6 4.7 4 3.2 7.5C16.3 16.6 12 21 12 21z"/></svg></div>
+        <h3>Keep the ones worth keeping</h3>
+        <p>If it clicks, send a friend request. If it doesn't, skip and you're back in the queue in seconds — no awkward goodbyes required.</p>
+      </div>
+      <div class="feature-card reveal spotlight">
+        <p class="tag">Gathered</p>
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="10" r="2.4"/><path d="M2.5 20c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><path d="M14.5 20c.4-2.4 1.9-3.8 3.8-4"/></svg></div>
+        <h3>Communities beyond the one-on-one</h3>
+        <p>Start or join a topic group once you've found your people — post, comment, and keep talking well after the first match ends.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chat mock / signature demo -->
+  <section class="reveal-section" style="padding-top:20px;">
+    <div class="section-head reveal">
+      <p class="eyebrow">Zero seconds ago</p>
+      <h2>You're already talking to someone</h2>
+    </div>
+    <div class="chat-mock reveal spotlight">
+      <div class="bubble them">hey! random question but do you also think pineapple belongs on pizza</div>
+      <div class="meta">Stranger · matched 0:04 ago</div>
+      <div class="bubble me">strong yes, I will not be taking further questions</div>
+      <div class="meta">You</div>
+      <div class="bubble them">okay respect. adding you before you disappear on me 😄</div>
+      <div class="meta">Stranger · sent a friend request</div>
+      <div class="bubble me typing"><span></span><span></span><span></span></div>
+    </div>
+  </section>
+
+  <!-- Trust constellation -->
+  <section class="reveal-section">
+    <div class="section-head reveal">
+      <p class="eyebrow">Built to be safe</p>
+      <h2>Trust, around every conversation</h2>
+      <p>Talking to someone new should feel easy, not risky. Every match sits inside the same set of protections.</p>
+    </div>
+    <div class="platform-row reveal">
+      <div class="platform-node">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <span>Verified</span>
+      </div>
+      <div class="platform-node">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/></svg></div>
+        <span>Blockable</span>
+      </div>
+      <div class="platform-node center">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg></div>
+        <span>NOVATalk</span>
+      </div>
+      <div class="platform-node">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg></div>
+        <span>Reviewed</span>
+      </div>
+      <div class="platform-node">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.4-9.5-8.5C1 9 2.4 5.6 5.7 5c2-.4 3.7.6 4.9 2.3C11.8 5.6 13.5 4.6 15.5 5c3.3.6 4.7 4 3.2 7.5C16.3 16.6 12 21 12 21z"/></svg></div>
+        <span>Your call</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- How a match happens -->
+  <section class="flow-section">
+    <div class="section-head reveal">
+      <p class="eyebrow">How it actually works</p>
+      <h2>From signal to conversation</h2>
+    </div>
+    <div class="flow-steps">
+      <div class="flow-step reveal spotlight">
+        <p class="num">01</p>
+        <h3>Send a signal</h3>
+        <p>Tap start and you're placed in a live queue — no forms, no filters to fuss over first.</p>
+      </div>
+      <div class="flow-step reveal spotlight">
+        <p class="num">02</p>
+        <h3>Get paired, instantly</h3>
+        <p>The moment someone else is listening, you're matched one-to-one and the chat opens.</p>
+      </div>
+      <div class="flow-step reveal spotlight">
+        <p class="num">03</p>
+        <h3>Talk, or don't</h3>
+        <p>Add them as a friend, skip to the next person, or report — your call, every time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="reveal-section">
+    <div class="section-head reveal">
+      <p class="eyebrow">Before you dive in</p>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Is the matching actually random?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div><p>Yes — you're placed in a live queue and paired with whoever else is waiting, in the order they arrived. There's no browsing, filtering, or picking from a list first.</p></div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Can the other person see who I really am?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div><p>Not unless you choose to share it. Strangers see a username, not your real identity — but every account is email‑verified behind the scenes, so blocks and reports still have something to act on.</p></div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>What happens if a conversation goes wrong?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div><p>Block instantly and it's over — they can't re-match with you or reach you again. Report it and a moderator reviews the conversation and takes action, logged and traceable.</p></div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          <span>Do I have to add people as friends?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div><p>Never. Skip to the next person whenever you like, no explanation needed. Adding a friend or joining a community only happens if you choose to.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer CTA -->
+  <section class="footer-cta">
+    <div class="reveal">
+      <p class="eyebrow" style="justify-content:center;">Ready when you are</p>
+      <h2>Someone's out there. Go find them.</h2>
+      <div class="hero-ctas" style="margin-top:8px;">
+        <button class="btn btn-primary" id="footerSignup">Create an account</button>
+        <button class="btn btn-ghost" id="footerSignin">Sign in</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 NOVATalk. All rights reserved.</span>
+    <span>Made for real conversation.</span>
+  </footer>
+
+  <!-- Auth modal -->
+  <div class="modal-layer" id="modalLayer" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-card">
+      <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+      <div class="modal-mark"></div>
+      <h2 id="modalTitle">Welcome to NOVATalk</h2>
+      <p class="sub" id="modalSub">Sign in and get matched with someone new.</p>
+
+      <div class="mode-switch" id="modeSwitch">
+        <div class="thumb"></div>
+        <button type="button" class="active" data-mode="signin">Sign in</button>
+        <button type="button" data-mode="signup">Sign up</button>
+      </div>
+
+      <form id="authForm" novalidate>
+        <div class="signup-extra"><div>
+          <div class="field-row">
+            <div class="field">
+              <label for="fname">Full name</label>
+              <input type="text" id="fname" placeholder="Jamie Rivera" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="uname">Username</label>
+              <input type="text" id="uname" placeholder="jamie.r" autocomplete="username">
+            </div>
+          </div>
+        </div></div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@email.com" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+
+        <div class="signup-extra"><div>
+          <div class="field">
+            <label for="confirm">Confirm password</label>
+            <input type="password" id="confirm" placeholder="••••••••" autocomplete="new-password">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="dob">Date of birth</label>
+              <input type="date" id="dob">
+            </div>
+            <div class="field">
+              <label for="gender">Gender</label>
+              <select id="gender">
+                <option value="">Select</option>
+                <option>Woman</option>
+                <option>Man</option>
+                <option>Non-binary</option>
+                <option>Prefer not to say</option>
+                <option>Self-describe</option>
+              </select>
+            </div>
+          </div>
+        </div></div>
+
+        <div class="helper-row" id="signinHelper">
+          <label><input type="checkbox" style="accent-color:var(--flare);"> Remember me</label>
+          <a href="#">Forgot password?</a>
+        </div>
+        <div class="helper-row" id="signupHelper" style="display:none;">
+          <label><input type="checkbox" required style="accent-color:var(--flare);"> I agree to the Terms &amp; Privacy Policy</label>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Sign in</button>
+        <p class="form-note">This is a front‑end demo — no account is actually created and no data leaves your browser.</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot"></span><span id="toastText"></span></div>
+
+<script>
+(function(){
+  // Universe: rotate the fixed starfield as the page scrolls, with
+  // each layer turning at a slightly different rate for depth.
+  const universe = document.querySelector('.universe');
+  const near = universe ? universe.querySelector('.stars-near') : null;
+  const nebula = universe ? universe.querySelector('.nebula') : null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if(universe && !reduceMotion){
+    let ticking = false;
+    function updateUniverse(){
+      const y = window.scrollY || window.pageYOffset || 0;
+      universe.style.transform = `translate(-50%,-50%) rotate(${y * 0.035}deg)`;
+      if(near) near.style.transform = `rotate(${y * 0.02}deg)`;
+      if(nebula) nebula.style.transform = `rotate(${y * -0.015}deg)`;
+      ticking = false;
+    }
+    window.addEventListener('scroll', ()=>{
+      if(!ticking){ requestAnimationFrame(updateUniverse); ticking = true; }
+    }, {passive:true});
+    updateUniverse();
+  }
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.15});
+  revealEls.forEach(el=>io.observe(el));
+
+  // Cursor-follow spotlight on cards
+  document.querySelectorAll('.spotlight').forEach(el=>{
+    el.addEventListener('mousemove', (e)=>{
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+      el.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+    });
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    const q = item.querySelector('.faq-q');
+    q.addEventListener('click', ()=>{
+      const willOpen = !item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(other=>{
+        if(other !== item){
+          other.classList.remove('open');
+          other.querySelector('.faq-q').setAttribute('aria-expanded','false');
+        }
+      });
+      item.classList.toggle('open', willOpen);
+      q.setAttribute('aria-expanded', String(willOpen));
+    });
+  });
+
+  // Modal logic
+  const modalLayer = document.getElementById('modalLayer');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalClose = document.getElementById('modalClose');
+  const modeSwitch = document.getElementById('modeSwitch');
+  const modeButtons = modeSwitch.querySelectorAll('button');
+  const authForm = document.getElementById('authForm');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalSub = document.getElementById('modalSub');
+  const submitBtn = document.getElementById('submitBtn');
+  const signinHelper = document.getElementById('signinHelper');
+  const signupHelper = document.getElementById('signupHelper');
+  const confirmInput = document.getElementById('confirm');
+  const fnameInput = document.getElementById('fname');
+  const unameInput = document.getElementById('uname');
+
+  let lastFocused = null;
+
+  function setMode(mode){
+    modeButtons.forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
+    modeSwitch.classList.toggle('signup', mode==='signup');
+    authForm.classList.toggle('mode-signup', mode==='signup');
+
+    if(mode==='signup'){
+      modalTitle.textContent = 'Create your account';
+      modalSub.textContent = 'A few details to verify it\'s really you, then you\'re in.';
+      submitBtn.textContent = 'Create account';
+      signinHelper.style.display = 'none';
+      signupHelper.style.display = 'flex';
+      confirmInput.setAttribute('required','');
+      fnameInput.setAttribute('required','');
+      unameInput.setAttribute('required','');
+    } else {
+      modalTitle.textContent = 'Welcome to NOVATalk';
+      modalSub.textContent = 'Sign in and get matched with someone new.';
+      submitBtn.textContent = 'Sign in';
+      signinHelper.style.display = 'flex';
+      signupHelper.style.display = 'none';
+      confirmInput.removeAttribute('required');
+      fnameInput.removeAttribute('required');
+      unameInput.removeAttribute('required');
+    }
+  }
+
+  modeButtons.forEach(b=>b.addEventListener('click', ()=>setMode(b.dataset.mode)));
+
+  function openModal(mode){
+    lastFocused = document.activeElement;
+    setMode(mode);
+    modalLayer.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(()=>{ document.getElementById('email').focus(); }, 320);
+  }
+  function closeModal(){
+    modalLayer.classList.remove('open');
+    document.body.style.overflow = '';
+    if(lastFocused) lastFocused.focus();
+  }
+
+  document.getElementById('openSignin').addEventListener('click', (e)=>{
+    if(e.target.id === 'openSignup'){ openModal('signup'); } else { openModal('signin'); }
+  });
+  document.getElementById('heroSignup').addEventListener('click', ()=>openModal('signup'));
+  document.getElementById('heroSignin').addEventListener('click', ()=>openModal('signin'));
+  document.getElementById('footerSignup').addEventListener('click', ()=>openModal('signup'));
+  document.getElementById('footerSignin').addEventListener('click', ()=>openModal('signin'));
+
+  modalClose.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape' && modalLayer.classList.contains('open')) closeModal();
+  });
+
+  // Toast
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toastText');
+  function showToast(msg){
+    toastText.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 3200);
+  }
+
+  authForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const isSignup = modeSwitch.classList.contains('signup');
+    if(isSignup){
+      const pw = document.getElementById('password').value;
+      const cf = confirmInput.value;
+      if(pw !== cf){
+        showToast('Passwords don\'t match — try again.');
+        return;
+      }
+      closeModal();
+      showToast('Demo only: account details captured locally, nothing was sent.');
+    } else {
+      closeModal();
+      showToast('Demo only: sign in captured locally, nothing was sent.');
+    }
+    authForm.reset();
+    setMode(isSignup ? 'signup':'signin');
+  });
+})();
+</script>
+</body>
+</html>
