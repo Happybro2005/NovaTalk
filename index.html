@@ -1,16 +1,289 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NovaTalk — Talk to the universe of strangers</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaTalk — Talk to the universe of strangers</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          colors: {
+            bg: '#050816',
+            'bg-secondary': '#0F172A',
+            primary: '#4F8CFF',
+            accent: '#7C3AED',
+            success: '#10B981',
+            warning: '#F59E0B',
+            danger: '#EF4444',
+            'text-primary': '#FFFFFF',
+            'text-secondary': '#CBD5E1',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="assets/css/main.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-bg text-white font-body selection:bg-primary/35 selection:text-white antialiased">
+
+  <!-- Ambient Backdrop -->
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816]">
+    <div class="absolute -top-40 left-1/4 h-[520px] w-[520px] rounded-full opacity-40 blur-[120px]" style="background: radial-gradient(circle, #7C3AED 0%, transparent 70%);"></div>
+    <div class="absolute top-1/3 -right-20 h-[460px] w-[460px] rounded-full opacity-30 blur-[130px]" style="background: radial-gradient(circle, #4F8CFF 0%, transparent 70%);"></div>
+    <div class="absolute bottom-0 left-1/3 h-[400px] w-[400px] rounded-full opacity-25 blur-[110px]" style="background: radial-gradient(circle, #7C3AED 0%, transparent 70%);"></div>
+    <canvas id="constellation-canvas" data-density="90" class="absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+    <div class="grain absolute inset-0"></div>
+  </div>
+
+  <!-- Header Nav -->
+  <header class="sticky top-0 z-40 border-b border-white/[0.06] bg-[#050816]/70 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_0_20px_-3px_rgba(79,140,255,0.5)]">
+          <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+        </div>
+        <span class="text-xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+      </a>
+      <nav class="hidden items-center gap-8 text-sm text-[#CBD5E1] md:flex">
+        <a href="#features" class="transition-colors hover:text-white">Features</a>
+        <a href="#stats" class="transition-colors hover:text-white">Stats</a>
+        <a href="#stories" class="transition-colors hover:text-white">Stories</a>
+        <a href="#download" class="transition-colors hover:text-white">Download</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <a href="login.html" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors hover:bg-white/5 active:bg-white/10 px-4 py-2 text-white">Log in</a>
+        <a href="register.html" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-all shadow-[0_4px_20px_-4px_rgba(79,140,255,0.4)] hover:shadow-[0_4px_24px_-2px_rgba(79,140,255,0.6)] active:scale-[0.98] bg-primary text-white hover:bg-[#3d7eff] px-4 py-2">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative mx-auto flex max-w-5xl flex-col items-center px-6 pb-28 pt-24 text-center">
+    <div class="eyebrow">LIVE · 84,213 STRANGERS ONLINE NOW</div>
+    <h1 class="mt-6 text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl font-display">
+      Every stranger is a<br>
+      <span class="text-gradient">star you haven't met.</span>
+    </h1>
+    <p class="mx-auto mt-6 max-w-xl text-lg text-[#CBD5E1]">
+      NovaTalk pairs you with real people in real time, then helps the good ones stick — through friends, communities, and a map of conversation worth exploring.
+    </p>
+    <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+      <a href="register.html" class="group inline-flex items-center justify-center gap-2 rounded-lg text-base font-medium transition-all shadow-[0_4px_20px_-4px_rgba(79,140,255,0.4)] hover:shadow-[0_4px_24px_-2px_rgba(79,140,255,0.6)] active:scale-[0.98] bg-primary text-white hover:bg-[#3d7eff] px-6 py-3">
+        Start a conversation
+        <i data-lucide="arrow-right" class="h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5"></i>
+      </a>
+      <a href="dashboard.html" class="inline-flex items-center justify-center gap-2 rounded-lg text-base font-medium transition-colors border border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 px-6 py-3 text-white">
+        See it in action
+      </a>
+    </div>
+
+    <!-- Floating preview card -->
+    <div class="animate-float glass-strong glow-primary mt-16 w-full max-w-2xl rounded-2xl p-5 text-left">
+      <div class="flex items-center gap-3 border-b border-white/[0.08] pb-3">
+        <div class="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse-glow"></div>
+        <span class="eyebrow">MATCHED · SOMEWHERE NEAR REYKJAVÍK</span>
+      </div>
+      <div class="mt-4 space-y-3">
+        <div class="flex justify-start">
+          <div class="max-w-xs rounded-2xl rounded-bl-sm bg-white/[0.08] px-4 py-2.5 text-sm text-[#CBD5E1]">
+            okay wait, you also think Saturn is the most photogenic planet?
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <div class="max-w-xs rounded-2xl rounded-br-sm bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED] px-4 py-2.5 text-sm text-white">
+            obviously. the rings do all the work for it
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 pl-1 text-xs text-[#CBD5E1]/60">
+          <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-[#CBD5E1]/60" style="animation-delay: -0.3s"></span>
+          <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-[#CBD5E1]/60" style="animation-delay: -0.15s"></span>
+          <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-[#CBD5E1]/60"></span>
+          <span class="ml-1">typing…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section id="stats" class="mx-auto max-w-6xl px-6 pb-24">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div class="glass rounded-xl p-6 text-center">
+        <div class="text-3xl font-semibold text-gradient font-display">2.4M+</div>
+        <div class="mt-1.5 text-sm text-[#CBD5E1]">Conversations sparked</div>
+      </div>
+      <div class="glass rounded-xl p-6 text-center">
+        <div class="text-3xl font-semibold text-gradient font-display">180+</div>
+        <div class="mt-1.5 text-sm text-[#CBD5E1]">Countries connected</div>
+      </div>
+      <div class="glass rounded-xl p-6 text-center">
+        <div class="text-3xl font-semibold text-gradient font-display">40K</div>
+        <div class="mt-1.5 text-sm text-[#CBD5E1]">Communities orbiting</div>
+      </div>
+      <div class="glass rounded-xl p-6 text-center">
+        <div class="text-3xl font-semibold text-gradient font-display">99.9%</div>
+        <div class="mt-1.5 text-sm text-[#CBD5E1]">Uptime across the galaxy</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="mx-auto max-w-6xl px-6 pb-28">
+    <div class="mx-auto max-w-2xl text-center">
+      <div class="eyebrow">THE CATALOG</div>
+      <h2 class="mt-3 text-4xl font-semibold tracking-tight font-display">Six ways NovaTalk maps a conversation</h2>
+      <p class="mt-3 text-[#CBD5E1]">
+        Every part of the product is named for the piece of sky it plays — a small nod to the thing that inspired it.
+      </p>
+    </div>
+    <div class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div class="glass rounded-xl p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="sparkles" class="text-primary h-5 w-5"></i>
+          <span class="eyebrow">ORION</span>
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-white">Stranger Match</h3>
+        <p class="mt-2 text-sm leading-relaxed text-[#CBD5E1]">A matching engine that pairs you with someone new in under a second — like a hunter finding its mark in a crowded sky.</p>
+      </div>
+      <div class="glass rounded-xl p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="text-primary h-5 w-5"></i>
+          <span class="eyebrow">LYRA</span>
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-white">Communities</h3>
+        <p class="mt-2 text-sm leading-relaxed text-[#CBD5E1]">Small constellations of people who share your frequency — join, post, and grow a space around what you care about.</p>
+      </div>
+      <div class="glass rounded-xl p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="star" class="text-primary h-5 w-5"></i>
+          <span class="eyebrow">POLARIS</span>
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-white">Friends, always findable</h3>
+        <p class="mt-2 text-sm leading-relaxed text-[#CBD5E1]">The one contact that never moves. Turn a good stranger chat into a lasting connection you can always find again.</p>
+      </div>
+      <div class="glass rounded-xl p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-check" class="text-primary h-5 w-5"></i>
+          <span class="eyebrow">AEGIS</span>
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-white">Safety by design</h3>
+        <p class="mt-2 text-sm leading-relaxed text-[#CBD5E1]">Block, report, and moderation tooling built in from the first message — so the sky stays safe to explore.</p>
+      </div>
+      <div class="glass rounded-xl p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="message-circle" class="text-primary h-5 w-5"></i>
+          <span class="eyebrow">VEGA</span>
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-white">Real-time everything</h3>
+        <p class="mt-2 text-sm leading-relaxed text-[#CBD5E1]">Typing indicators, presence, voice notes and media — delivered the instant they happen, no refresh required.</p>
+      </div>
+      <div class="glass rounded-xl p-6">
+        <div class="flex items-center gap-2">
+          <i data-lucide="globe-2" class="text-primary h-5 w-5"></i>
+          <span class="eyebrow">CARTOGRAPHY</span>
+        </div>
+        <h3 class="mt-4 text-lg font-semibold text-white">A world, not a feed</h3>
+        <p class="mt-2 text-sm leading-relaxed text-[#CBD5E1]">Discover people and communities across languages and time zones with a map that actually feels alive.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="stories" class="mx-auto max-w-6xl px-6 pb-28">
+    <div class="mx-auto max-w-2xl text-center">
+      <div class="eyebrow">FIELD REPORTS</div>
+      <h2 class="mt-3 text-4xl font-semibold tracking-tight font-display">People who found their orbit</h2>
+    </div>
+    <div class="mt-14 grid gap-5 md:grid-cols-3">
+      <div class="glass rounded-xl flex h-full flex-col p-6">
+        <p class="flex-1 text-sm leading-relaxed text-[#CBD5E1]">"I matched with someone in Lagos over a shared obsession with vinyl records. Three months later we still talk daily."</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-white/[0.08] pt-4">
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">A</div>
+          <div>
+            <div class="text-sm font-medium text-white">Amara O.</div>
+            <div class="text-xs text-[#CBD5E1]/70">NovaTalk since 2025</div>
+          </div>
+        </div>
+      </div>
+      <div class="glass rounded-xl flex h-full flex-col p-6">
+        <p class="flex-1 text-sm leading-relaxed text-[#CBD5E1]">"The community for indie game devs I joined here is more active than my actual Discord server."</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-white/[0.08] pt-4">
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">R</div>
+          <div>
+            <div class="text-sm font-medium text-white">Ren K.</div>
+            <div class="text-xs text-[#CBD5E1]/70">Community: PixelForge</div>
+          </div>
+        </div>
+      </div>
+      <div class="glass rounded-xl flex h-full flex-col p-6">
+        <p class="flex-1 text-sm leading-relaxed text-[#CBD5E1]">"It feels like the internet used to feel — a little unpredictable, mostly kind."</p>
+        <div class="mt-5 flex items-center gap-3 border-t border-white/[0.08] pt-4">
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">P</div>
+          <div>
+            <div class="text-sm font-medium text-white">Priya S.</div>
+            <div class="text-xs text-[#CBD5E1]/70">Stranger Chat regular</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download Section -->
+  <section id="download" class="mx-auto max-w-6xl px-6 pb-28">
+    <div class="glass-strong glow-accent relative overflow-hidden px-8 py-14 text-center md:px-16 rounded-2xl">
+      <div class="eyebrow">COMING TO YOUR POCKET</div>
+      <h2 class="mt-3 text-4xl font-semibold tracking-tight font-display">Take the sky with you</h2>
+      <p class="mx-auto mt-3 max-w-md text-[#CBD5E1]">
+        Native apps for iOS and Android are in orbit — join the list to be notified the moment they launch.
+      </p>
+      <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+        <button class="inline-flex items-center justify-center gap-2 rounded-lg text-base font-medium transition-colors border border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 px-6 py-3 text-white">
+          <i data-lucide="apple" class="h-[18px] w-[18px]"></i> Notify me on iOS
+        </button>
+        <button class="inline-flex items-center justify-center gap-2 rounded-lg text-base font-medium transition-colors border border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 px-6 py-3 text-white">
+          <i data-lucide="play-circle" class="h-[18px] w-[18px]"></i> Notify me on Android
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/[0.06] px-6 py-12">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 md:flex-row">
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-[0_0_15px_-3px_rgba(79,140,255,0.5)]">
+          <i data-lucide="sparkles" class="h-4 w-4 text-white"></i>
+        </div>
+        <span class="text-base font-bold tracking-tight text-white font-display">NovaTalk</span>
+      </a>
+      <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-[#CBD5E1]">
+        <a href="#" class="hover:text-white">Privacy</a>
+        <a href="#" class="hover:text-white">Terms</a>
+        <a href="#" class="hover:text-white">Support</a>
+        <a href="#" class="hover:text-white">Status</a>
+      </div>
+      <span class="text-xs text-[#CBD5E1]/60">© 2026 NovaTalk. All signals reserved.</span>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
 </html>

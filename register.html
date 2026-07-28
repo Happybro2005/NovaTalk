@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Your Account — NovaTalk</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          colors: {
+            bg: '#050816',
+            'bg-secondary': '#0F172A',
+            primary: '#4F8CFF',
+            accent: '#7C3AED',
+            success: '#10B981',
+            warning: '#F59E0B',
+            danger: '#EF4444',
+            'text-primary': '#FFFFFF',
+            'text-secondary': '#CBD5E1',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="assets/css/main.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-bg text-white font-body selection:bg-primary/35 selection:text-white antialiased">
+
+  <!-- Ambient Backdrop (Quiet variant) -->
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816]">
+    <canvas id="constellation-canvas" data-density="40" class="absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+    <div class="grain absolute inset-0"></div>
+  </div>
+
+  <div class="relative min-h-screen px-4 py-12">
+    <div class="mx-auto max-w-2xl">
+      <!-- Logo -->
+      <div class="mb-8 flex justify-center">
+        <a href="index.html" class="flex items-center gap-2">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_0_20px_-3px_rgba(79,140,255,0.5)]">
+            <i data-lucide="sparkles" class="h-6 w-6 text-white"></i>
+          </div>
+          <span class="text-2xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+        </a>
+      </div>
+
+      <!-- Register Card -->
+      <div class="glass-strong glow-primary p-8 rounded-2xl">
+        <div class="eyebrow">NEW SIGNAL</div>
+        <h1 class="mt-2 text-2xl font-semibold text-white font-display">Create your account</h1>
+        <p class="mt-1.5 text-sm text-[#CBD5E1]">A few details, then you're out among the stars.</p>
+
+        <form class="mt-7 space-y-6" onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+          <!-- Avatar upload -->
+          <div class="flex items-center gap-4">
+            <div class="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-white/20 bg-white/[0.04] text-[#CBD5E1]/50 cursor-pointer hover:bg-white/[0.08] transition-colors">
+              <i data-lucide="camera" class="h-[22px] w-[22px]"></i>
+              <button type="button" class="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-white shadow-lg">+</button>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-white">Profile picture</p>
+              <p class="text-xs text-[#CBD5E1]/60">PNG or JPG, up to 5MB.</p>
+            </div>
+          </div>
+
+          <!-- Display Name and Username -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Display name</label>
+              <div class="relative flex items-center">
+                <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="user" class="h-4 w-4"></i></span>
+                <input type="text" required placeholder="Prashant Singh" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Username</label>
+              <div class="relative flex items-center">
+                <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="at-sign" class="h-4 w-4"></i></span>
+                <input type="text" required placeholder="@prashant" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Input -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Email</label>
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="mail" class="h-4 w-4"></i></span>
+              <input type="email" required placeholder="you@example.com" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+            </div>
+          </div>
+
+          <!-- Passwords -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Password</label>
+              <div class="relative flex items-center">
+                <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="lock" class="h-4 w-4"></i></span>
+                <input type="password" required placeholder="••••••••" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Confirm password</label>
+              <div class="relative flex items-center">
+                <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="lock" class="h-4 w-4"></i></span>
+                <input type="password" required placeholder="••••••••" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              </div>
+            </div>
+          </div>
+
+          <!-- Demographics -->
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Country</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#CBD5E1]/70"><i data-lucide="globe" class="h-4 w-4"></i></span>
+                <select class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  <option class="bg-[#0F172A]" selected>India</option>
+                  <option class="bg-[#0F172A]">United States</option>
+                  <option class="bg-[#0F172A]">United Kingdom</option>
+                  <option class="bg-[#0F172A]">Japan</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Date of birth</label>
+              <div class="relative flex items-center">
+                <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="calendar" class="h-4 w-4"></i></span>
+                <input type="date" required class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              </div>
+            </div>
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Gender</label>
+              <select class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                <option class="bg-[#0F172A]" selected>Prefer not to say</option>
+                <option class="bg-[#0F172A]">Male</option>
+                <option class="bg-[#0F172A]">Female</option>
+                <option class="bg-[#0F172A]">Non-binary</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Language</label>
+            <select class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+              <option class="bg-[#0F172A]" selected>English</option>
+              <option class="bg-[#0F172A]">Hindi</option>
+              <option class="bg-[#0F172A]">Spanish</option>
+              <option class="bg-[#0F172A]">Japanese</option>
+            </select>
+          </div>
+
+          <!-- Interests -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[#CBD5E1]">Interests</label>
+            <div id="interests-container" class="flex flex-wrap gap-2">
+              <!-- Dynamically rendered or toggled via script -->
+            </div>
+          </div>
+
+          <!-- Agreement -->
+          <label class="flex items-start gap-2.5 text-sm text-[#CBD5E1] cursor-pointer">
+            <input type="checkbox" required class="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5 accent-primary">
+            <span>I agree to the <a href="#" class="text-primary hover:underline">Terms of Service</a> and <a href="#" class="text-primary hover:underline">Privacy Policy</a>.</span>
+          </label>
+
+          <!-- Submit Button -->
+          <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-lg text-base font-medium transition-all shadow-[0_4px_20px_-4px_rgba(79,140,255,0.4)] hover:shadow-[0_4px_24px_-2px_rgba(79,140,255,0.6)] active:scale-[0.98] bg-primary text-white hover:bg-[#3d7eff] px-6 py-3">
+            Create account
+          </button>
+        </form>
+
+        <!-- Link to login -->
+        <p class="mt-6 text-center text-sm text-[#CBD5E1]">
+          Already have an account? 
+          <a href="login.html" class="font-medium text-primary hover:underline">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    const interestsList = [
+      'Gaming', 'Music', 'Movies', 'Tech', 'Art', 'Books',
+      'Sports', 'Travel', 'Food', 'Anime', 'Fitness', 'Photography'
+    ];
+    let selectedInterests = ['Tech', 'Music'];
+
+    const container = document.getElementById('interests-container');
+
+    function renderInterests() {
+      container.innerHTML = '';
+      interestsList.forEach(interest => {
+        const isSelected = selectedInterests.includes(interest);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = interest;
+        btn.className = `rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+          isSelected
+            ? 'border-primary/50 bg-primary/20 text-white'
+            : 'border-white/10 bg-white/[0.03] text-[#CBD5E1]/70 hover:bg-white/[0.06]'
+        }`;
+        
+        btn.addEventListener('click', () => {
+          if (selectedInterests.includes(interest)) {
+            selectedInterests = selectedInterests.filter(i => i !== interest);
+          } else {
+            selectedInterests.push(interest);
+          }
+          renderInterests();
+        });
+        
+        container.appendChild(btn);
+      });
+    }
+
+    renderInterests();
+  </script>
+</body>
+</html>
