@@ -69,7 +69,7 @@
         <h1 class="mt-2 text-2xl font-semibold text-white font-display">Create your account</h1>
         <p class="mt-1.5 text-sm text-[#CBD5E1]">A few details, then you're out among the stars.</p>
 
-        <form class="mt-7 space-y-6" onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+        <form id="register-form" class="mt-7 space-y-6">
           <!-- Avatar upload -->
           <div class="flex items-center gap-4">
             <div class="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-white/20 bg-white/[0.04] text-[#CBD5E1]/50 cursor-pointer hover:bg-white/[0.08] transition-colors">
@@ -88,24 +88,36 @@
               <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Display name</label>
               <div class="relative flex items-center">
                 <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="user" class="h-4 w-4"></i></span>
-                <input type="text" required placeholder="Prashant Singh" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+                <input type="text" name="displayName" required placeholder="Your name" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
               </div>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Username</label>
               <div class="relative flex items-center">
                 <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="at-sign" class="h-4 w-4"></i></span>
-                <input type="text" required placeholder="@prashant" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+                <input type="text" name="username" required placeholder="@username" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
               </div>
             </div>
           </div>
 
-          <!-- Email Input -->
+          <!-- Email Input and OTP -->
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Email</label>
-            <div class="relative flex items-center">
-              <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="mail" class="h-4 w-4"></i></span>
-              <input type="email" required placeholder="you@example.com" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#CBD5E1]/50"><i data-lucide="mail" class="h-4 w-4"></i></span>
+                <input id="email-field" type="email" name="email" required placeholder="you@example.com" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              </div>
+              <button id="send-otp-btn" type="button" class="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-medium text-primary transition hover:bg-primary/20">Send OTP</button>
+            </div>
+            <p id="otp-status" class="mt-2 hidden text-xs text-[#CBD5E1]/80"></p>
+          </div>
+
+          <div id="otp-verification" class="hidden">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Verify email OTP</label>
+            <div class="flex gap-2">
+              <input id="otp-input" type="text" maxlength="6" inputmode="numeric" placeholder="Enter 6-digit OTP" class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+              <button id="verify-otp-btn" type="button" class="rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-xs font-medium text-[#10B981] transition hover:bg-success/20">Verify</button>
             </div>
           </div>
 
@@ -115,25 +127,25 @@
               <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Password</label>
               <div class="relative flex items-center">
                 <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="lock" class="h-4 w-4"></i></span>
-                <input type="password" required placeholder="••••••••" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+                <input type="password" name="password" required placeholder="••••••••" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
               </div>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Confirm password</label>
               <div class="relative flex items-center">
                 <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="lock" class="h-4 w-4"></i></span>
-                <input type="password" required placeholder="••••••••" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
+                <input type="password" name="confirmPassword" required placeholder="••••••••" class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
               </div>
             </div>
           </div>
 
           <!-- Demographics -->
-          <div class="grid gap-4 sm:grid-cols-3">
+          <div class="grid gap-4 sm:grid-cols-2">
             <div>
               <label class="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Country</label>
               <div class="relative">
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#CBD5E1]/70"><i data-lucide="globe" class="h-4 w-4"></i></span>
-                <select class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                <select name="country" class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
                   <option class="bg-[#0F172A]" selected>India</option>
                   <option class="bg-[#0F172A]">United States</option>
                   <option class="bg-[#0F172A]">United Kingdom</option>
@@ -142,15 +154,8 @@
               </div>
             </div>
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-[#CBD5E1]/70 mb-2 font-mono">Date of birth</label>
-              <div class="relative flex items-center">
-                <span class="absolute left-3.5 text-[#CBD5E1]/50"><i data-lucide="calendar" class="h-4 w-4"></i></span>
-                <input type="date" required class="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-all focus:border-primary focus:bg-white/[0.08] focus:ring-1 focus:ring-primary">
-              </div>
-            </div>
-            <div>
               <label class="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Gender</label>
-              <select class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+              <select name="gender" class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
                 <option class="bg-[#0F172A]" selected>Prefer not to say</option>
                 <option class="bg-[#0F172A]">Male</option>
                 <option class="bg-[#0F172A]">Female</option>
@@ -162,7 +167,7 @@
           <!-- Language -->
           <div>
             <label class="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Language</label>
-            <select class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+            <select name="language" class="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
               <option class="bg-[#0F172A]" selected>English</option>
               <option class="bg-[#0F172A]">Hindi</option>
               <option class="bg-[#0F172A]">Spanish</option>
@@ -236,6 +241,96 @@
     }
 
     renderInterests();
+
+    const registerForm = document.getElementById('register-form');
+    const emailField = document.getElementById('email-field');
+    const otpStatus = document.getElementById('otp-status');
+    const otpVerification = document.getElementById('otp-verification');
+    const otpInput = document.getElementById('otp-input');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+
+    let generatedOtp = '';
+    let emailVerified = false;
+
+    function showOtpStatus(message, isSuccess = true) {
+      otpStatus.textContent = message;
+      otpStatus.classList.remove('hidden', 'text-[#EF4444]', 'text-[#10B981]');
+      otpStatus.classList.add(isSuccess ? 'text-[#10B981]' : 'text-[#EF4444]');
+      otpStatus.classList.remove('hidden');
+    }
+
+    sendOtpBtn.addEventListener('click', () => {
+      const email = String(emailField.value || '').trim();
+      if (!email) {
+        showOtpStatus('Please enter your email first.', false);
+        return;
+      }
+
+      generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
+      emailVerified = false;
+      otpInput.value = '';
+      otpVerification.classList.remove('hidden');
+      showOtpStatus(`OTP sent to ${email}. Use code ${generatedOtp} to verify your email.`, true);
+    });
+
+    verifyOtpBtn.addEventListener('click', () => {
+      const enteredOtp = String(otpInput.value || '').trim();
+      if (!generatedOtp) {
+        showOtpStatus('Please request an OTP first.', false);
+        return;
+      }
+
+      if (enteredOtp !== generatedOtp) {
+        showOtpStatus('Invalid OTP. Please try again.', false);
+        return;
+      }
+
+      emailVerified = true;
+      showOtpStatus('Email verified successfully.', true);
+      otpInput.setAttribute('readonly', 'readonly');
+      verifyOtpBtn.disabled = true;
+      verifyOtpBtn.classList.add('opacity-60', 'cursor-not-allowed');
+    });
+
+    registerForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(registerForm);
+      const displayName = String(formData.get('displayName') || '').trim();
+      const username = String(formData.get('username') || '').trim();
+      const email = String(formData.get('email') || '').trim();
+      const password = String(formData.get('password') || '');
+      const confirmPassword = String(formData.get('confirmPassword') || '');
+
+      if (!displayName || !username || !email || !password || !confirmPassword) {
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert('Passwords do not match.');
+        return;
+      }
+
+      if (!emailVerified) {
+        alert('Please verify your email with the OTP sent to your inbox.');
+        return;
+      }
+
+      const profile = {
+        name: displayName,
+        username: username.startsWith('@') ? username : `@${username}`,
+        email,
+        bio: 'Exploring ideas, people, and new conversations across the galaxy.',
+        country: String(formData.get('country') || 'India'),
+        gender: String(formData.get('gender') || 'Prefer not to say'),
+        language: String(formData.get('language') || 'English'),
+        interests: selectedInterests.length ? selectedInterests : ['Tech', 'Music'],
+      };
+
+      localStorage.setItem('novatalk-user', JSON.stringify(profile));
+      window.location.href = 'dashboard.html';
+    });
   </script>
 </body>
 </html>

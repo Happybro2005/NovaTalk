@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Camera, Mail, Lock, User, AtSign, Globe, Calendar } from 'lucide-react'
+import { Camera, Mail, Lock, User, AtSign, Globe } from 'lucide-react'
 import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
 import { Button, GlassCard, Input, Eyebrow } from '../components/ui'
@@ -13,11 +13,79 @@ const interests = [
 
 export default function RegisterPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(['Tech', 'Music'])
+  const [generatedOtp, setGeneratedOtp] = useState('')
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [otpMessage, setOtpMessage] = useState('')
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests((prev) =>
       prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
     )
+  }
+
+  const sendOtp = () => {
+    const email = (document.querySelector('input[name="email"]') as HTMLInputElement | null)?.value?.trim() || ''
+    if (!email) {
+      setOtpMessage('Please enter your email first.')
+      return
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000))
+    setGeneratedOtp(otp)
+    setEmailVerified(false)
+    setOtpCode('')
+    setOtpMessage(`OTP sent to ${email}. Use code ${otp} to verify your email.`)
+  }
+
+  const verifyOtp = () => {
+    if (!generatedOtp) {
+      setOtpMessage('Please request an OTP first.')
+      return
+    }
+
+    if (String(otpCode).trim() !== generatedOtp) {
+      setOtpMessage('Invalid OTP. Please try again.')
+      return
+    }
+
+    setEmailVerified(true)
+    setOtpMessage('Email verified successfully.')
+  }
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const displayName = String(formData.get('displayName') || '').trim()
+    const username = String(formData.get('username') || '').trim()
+    const email = String(formData.get('email') || '').trim()
+    const password = String(formData.get('password') || '')
+    const confirmPassword = String(formData.get('confirmPassword') || '')
+
+    if (!displayName || !username || !email || !password || !confirmPassword) return
+    if (password !== confirmPassword) {
+      alert('Passwords do not match.')
+      return
+    }
+    if (!emailVerified) {
+      alert('Please verify your email with the OTP sent to your inbox.')
+      return
+    }
+
+    const profile = {
+      name: displayName,
+      username: username.startsWith('@') ? username : `@${username}`,
+      email,
+      bio: 'Exploring ideas, people, and new conversations across the galaxy.',
+      country: String(formData.get('country') || 'India'),
+      gender: String(formData.get('gender') || 'Prefer not to say'),
+      language: String(formData.get('language') || 'English'),
+      interests: selectedInterests.length ? selectedInterests : ['Tech', 'Music'],
+    }
+
+    localStorage.setItem('novatalk-user', JSON.stringify(profile))
+    window.location.href = '/dashboard'
   }
 
   return (
@@ -43,7 +111,7 @@ export default function RegisterPage() {
           </h1>
           <p className="mt-1.5 text-sm text-[#CBD5E1]">A few details, then you're out among the stars.</p>
 
-          <form className="mt-7 space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="mt-7 space-y-6" onSubmit={handleSubmit}>
             {/* Avatar upload */}
             <div className="flex items-center gap-4">
               <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-white/20 bg-white/[0.04] text-[#CBD5E1]/50">
@@ -62,15 +130,40 @@ export default function RegisterPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Display name" placeholder="Prashant Singh" icon={<User size={16} />} />
-              <Input label="Username" placeholder="@prashant" icon={<AtSign size={16} />} />
+              <Input name="displayName" label="Display name" placeholder="Your name" icon={<User size={16} />} />
+              <Input name="username" label="Username" placeholder="@username" icon={<AtSign size={16} />} />
             </div>
 
-            <Input label="Email" type="email" placeholder="you@example.com" icon={<Mail size={16} />} />
+            <div>
+              <Input name="email" label="Email" type="email" placeholder="you@example.com" icon={<Mail size={16} />} />
+              <div className="mt-3 flex gap-2">
+                <button type="button" onClick={sendOtp} className="rounded-xl border border-[#4F8CFF]/40 bg-[#4F8CFF]/10 px-3 py-2 text-xs font-medium text-[#4F8CFF] transition hover:bg-[#4F8CFF]/15">
+                  Send OTP
+                </button>
+              </div>
+              {otpMessage && <p className="mt-2 text-xs text-[#CBD5E1]">{otpMessage}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Verify email OTP</label>
+              <div className="flex gap-2">
+                <input
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  maxLength={6}
+                  inputMode="numeric"
+                  placeholder="Enter 6-digit OTP"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-[#CBD5E1]/40 outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20"
+                />
+                <button type="button" onClick={verifyOtp} className="rounded-xl border border-[#10B981]/40 bg-[#10B981]/10 px-3 py-2 text-xs font-medium text-[#10B981] transition hover:bg-[#10B981]/15">
+                  Verify
+                </button>
+              </div>
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Password" type="password" placeholder="••••••••" icon={<Lock size={16} />} />
-              <Input label="Confirm password" type="password" placeholder="••••••••" icon={<Lock size={16} />} />
+              <Input name="password" label="Password" type="password" placeholder="••••••••" icon={<Lock size={16} />} />
+              <Input name="confirmPassword" label="Confirm password" type="password" placeholder="••••••••" icon={<Lock size={16} />} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -78,18 +171,17 @@ export default function RegisterPage() {
                 <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Country</label>
                 <div className="relative">
                   <Globe size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#CBD5E1]/70" />
-                  <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
-                    <option className="bg-[#0F172A]">India</option>
+                  <select name="country" className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
+                    <option className="bg-[#0F172A]" defaultValue="India">India</option>
                     <option className="bg-[#0F172A]">United States</option>
                     <option className="bg-[#0F172A]">United Kingdom</option>
                     <option className="bg-[#0F172A]">Japan</option>
                   </select>
                 </div>
               </div>
-              <Input label="Date of birth" type="date" icon={<Calendar size={16} />} />
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Gender</label>
-                <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
+                <select name="gender" className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
                   <option className="bg-[#0F172A]">Prefer not to say</option>
                   <option className="bg-[#0F172A]">Male</option>
                   <option className="bg-[#0F172A]">Female</option>
@@ -100,7 +192,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Language</label>
-              <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
+              <select name="language" className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
                 <option className="bg-[#0F172A]">English</option>
                 <option className="bg-[#0F172A]">Hindi</option>
                 <option className="bg-[#0F172A]">Spanish</option>

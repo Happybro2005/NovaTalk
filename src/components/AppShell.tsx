@@ -29,9 +29,32 @@ const navItems = [
 
 const mobileNavItems = navItems.slice(0, 5)
 
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem('novatalk-user')
+    if (!raw) return null
+    const user = JSON.parse(raw)
+    return user && typeof user === 'object' ? user : null
+  } catch {
+    return null
+  }
+}
+
+function getInitials(name = 'User') {
+  return String(name)
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'U'
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const storedUser = getStoredUser() || { name: 'Your Name', username: '@username' }
+  const initials = getInitials(storedUser.name)
 
   return (
     <div className="relative min-h-screen">
@@ -65,10 +88,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="border-t border-white/[0.06] p-4">
             <div className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.05]">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">
-                PS
+                {initials}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-white">Prashant Singh</div>
+                <div className="truncate text-sm font-medium text-white">{storedUser.name}</div>
                 <div className="truncate text-xs text-[#10B981]">Online</div>
               </div>
             </div>
@@ -124,7 +147,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               </Link>
               <Link to="/profile">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-xs font-semibold">
-                  PS
+                  {initials}
                 </div>
               </Link>
             </div>

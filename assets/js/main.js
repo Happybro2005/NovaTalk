@@ -1,7 +1,139 @@
 // Global javascript file for NovaTalk static site
 
+const NOVATALK_USER_KEY = 'novatalk-user';
+
+function normalizeUsername(value = '') {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '@user';
+  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+}
+
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(NOVATALK_USER_KEY);
+    if (!raw) return null;
+    const user = JSON.parse(raw);
+    return user && typeof user === 'object' ? user : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function getDisplayProfile() {
+  const fallback = {
+    name: 'Your Name',
+    username: '@username',
+    bio: 'Exploring ideas, people, and new conversations across the galaxy.',
+  };
+
+  const user = getStoredUser() || {};
+  return {
+    name: user.name || fallback.name,
+    username: normalizeUsername(user.username || fallback.username),
+    bio: user.bio || fallback.bio,
+  };
+}
+
+function getInitials(name = 'User') {
+  return String(name)
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'U';
+}
+
+function applyUserProfile() {
+  const profile = getDisplayProfile();
+
+  document.querySelectorAll('[data-user-name]').forEach((element) => {
+    element.textContent = profile.name;
+  });
+
+  document.querySelectorAll('[data-user-username]').forEach((element) => {
+    element.textContent = profile.username;
+  });
+
+  document.querySelectorAll('[data-user-bio]').forEach((element) => {
+    element.textContent = profile.bio;
+  });
+
+  document.querySelectorAll('[data-user-initials]').forEach((element) => {
+    element.textContent = getInitials(profile.name);
+  });
+
+  const greeting = document.querySelector('[data-user-greeting]');
+  if (greeting) {
+    const firstName = profile.name.split(/\s+/).filter(Boolean)[0] || 'Friend';
+    greeting.textContent = `Welcome back, ${firstName}`;
+  }
+
+  const displayNameField = document.querySelector('[data-user-display-name]');
+  if (displayNameField) {
+    displayNameField.value = profile.name;
+  }
+
+  const usernameField = document.querySelector('[data-user-display-username]');
+  if (usernameField) {
+    usernameField.value = profile.username;
+  }
+
+  const bioField = document.querySelector('[data-user-bio-field]');
+  if (bioField) {
+    bioField.value = profile.bio;
+  }
+}
+
+function injectGlobalMenu() {
+  if (document.querySelector('[data-global-menu]')) return;
+
+  const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+  const authPages = ['/login', '/login.html', '/register', '/register.html', '/forgot-password', '/forgot-password.html', '/profile', '/profile.html'];
+
+  if (authPages.includes(currentPath)) return;
+
+  const hasExistingSidebar = Array.from(document.querySelectorAll('aside')).some((aside) =>
+    aside.innerHTML.includes('dashboard.html') || aside.innerHTML.includes('stranger-chat.html')
+  );
+
+  if (hasExistingSidebar) return;
+
+  const menu = document.createElement('div');
+  menu.setAttribute('data-global-menu', 'true');
+  menu.innerHTML = `
+    <div class="fixed left-4 top-4 z-50 w-[220px] rounded-2xl border border-white/10 bg-[#050816]/80 p-4 shadow-[0_0_40px_rgba(79,140,255,0.15)] backdrop-blur-xl">
+      <div class="mb-4 flex items-center gap-2">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
+          <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+        </div>
+        <span class="text-xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+      </div>
+      <nav class="space-y-1 text-sm text-[#CBD5E1]">
+        <a href="dashboard.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Dashboard</a>
+        <a href="stranger-chat.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Stranger Chat</a>
+        <a href="friends.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Friends</a>
+        <a href="friend-requests.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Requests</a>
+        <a href="communities.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Communities</a>
+        <a href="notifications.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Notifications</a>
+        <a href="settings.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Settings</a>
+        <a href="support.html" class="block rounded-xl px-3 py-2 hover:bg-white/[0.05] hover:text-white">Support</a>
+      </nav>
+    </div>
+  `;
+
+  document.body.appendChild(menu);
+
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+}
+
 // 1. Initialize Lucide Icons
 document.addEventListener('DOMContentLoaded', () => {
+  injectGlobalMenu();
+  applyUserProfile();
+
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }

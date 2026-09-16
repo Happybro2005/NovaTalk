@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — NovaTalk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { display: ["Space Grotesk", "sans-serif"], body: ["Inter", "sans-serif"], mono: ["JetBrains Mono", "monospace"] }, colors: { bg: '#050816', 'bg-secondary': '#0F172A', primary: '#4F8CFF', accent: '#7C3AED', success: '#10B981', warning: '#F59E0B', danger: '#EF4444', 'text-primary': '#FFFFFF', 'text-secondary': '#CBD5E1' } } } }
+  </script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-bg text-white font-body selection:bg-primary/35 selection:text-white antialiased">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816]">
+    <canvas id="constellation-canvas" data-density="24" class="absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+    <div class="grain absolute inset-0"></div>
+  </div>
+
+  <div class="relative min-h-screen">
+    <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#050816]/60 backdrop-blur-xl lg:flex">
+      <div class="px-6 py-6">
+        <a href="index.html" class="flex items-center gap-2">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
+            <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+          </div>
+          <span class="text-xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+        </a>
+      </div>
+      <nav class="flex-1 space-y-1 px-3">
+        <a href="dashboard.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="layout-dashboard" class="h-[18px] w-[18px]"></i> Dashboard</a>
+        <a href="stranger-chat.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="message-circle" class="h-[18px] w-[18px]"></i> Stranger Chat</a>
+        <a href="friends.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="users" class="h-[18px] w-[18px]"></i> Friends</a>
+        <a href="friend-requests.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="user-plus" class="h-[18px] w-[18px]"></i> Requests</a>
+        <a href="communities.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="compass" class="h-[18px] w-[18px]"></i> Communities</a>
+        <a href="notifications.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="bell" class="h-[18px] w-[18px]"></i> Notifications</a>
+        <a href="settings.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all glass text-white glow-primary"><i data-lucide="settings" class="h-[18px] w-[18px]"></i> Settings</a>
+        <a href="support.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="life-buoy" class="h-[18px] w-[18px]"></i> Support</a>
+      </nav>
+    </aside>
+
+    <div id="mobile-sidebar" class="fixed inset-0 z-50 hidden lg:hidden">
+      <div class="absolute inset-0 bg-black/60" onclick="toggleMobileSidebar()"></div>
+      <aside class="glass-strong absolute left-0 top-0 flex h-full w-72 flex-col p-4">
+        <div class="mb-6 flex items-center justify-between px-2 py-2">
+          <a href="index.html" class="flex items-center gap-2">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_0_20px_-3px_rgba(79,140,255,0.5)]">
+              <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+          </a>
+          <button onclick="toggleMobileSidebar()" class="text-[#CBD5E1]">
+            <i data-lucide="x" class="h-5 w-5"></i>
+          </button>
+        </div>
+        <nav class="space-y-1">
+          <a href="dashboard.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="layout-dashboard" class="h-[18px] w-[18px]"></i> Dashboard</a>
+          <a href="stranger-chat.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="message-circle" class="h-[18px] w-[18px]"></i> Stranger Chat</a>
+          <a href="friends.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="users" class="h-[18px] w-[18px]"></i> Friends</a>
+          <a href="friend-requests.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="user-plus" class="h-[18px] w-[18px]"></i> Requests</a>
+          <a href="communities.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="compass" class="h-[18px] w-[18px]"></i> Communities</a>
+          <a href="notifications.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="bell" class="h-[18px] w-[18px]"></i> Notifications</a>
+          <a href="settings.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3.5 py-2.5 text-sm font-medium text-white"><i data-lucide="settings" class="h-[18px] w-[18px]"></i> Settings</a>
+          <a href="support.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="life-buoy" class="h-[18px] w-[18px]"></i> Support</a>
+        </nav>
+      </aside>
+    </div>
+
+    <div class="min-h-screen flex-1 px-4 pb-16 pt-6 sm:px-6">
+      <header class="mb-6 flex items-center gap-3">
+        <button onclick="toggleMobileSidebar()" class="text-[#CBD5E1] lg:hidden">
+          <i data-lucide="menu" class="h-[22px] w-[22px]"></i>
+        </button>
+        <div>
+          <div class="eyebrow">SETTINGS</div>
+          <h1 class="mt-1 text-3xl font-semibold tracking-tight text-white font-display">Account preferences</h1>
+        </div>
+      </header>
+
+      <main class="grid gap-6 lg:grid-cols-2">
+        <section class="glass rounded-2xl p-6">
+          <div class="flex items-center gap-4">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-xl font-semibold" data-user-initials>PS</div>
+            <div>
+              <div class="text-lg font-semibold text-white" data-user-name>Your Name</div>
+              <div class="text-sm text-[#CBD5E1]" data-user-username>@username</div>
+            </div>
+          </div>
+
+          <form class="mt-6 space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block text-sm text-[#CBD5E1]">
+                <span class="mb-2 block">Display name</span>
+                <input type="text" data-user-display-name value="Your Name" class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-white outline-none focus:border-primary">
+              </label>
+              <label class="block text-sm text-[#CBD5E1]">
+                <span class="mb-2 block">Username</span>
+                <input type="text" data-user-display-username value="@username" class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-white outline-none focus:border-primary">
+              </label>
+            </div>
+
+            <label class="block text-sm text-[#CBD5E1]">
+              <span class="mb-2 block">Bio</span>
+              <textarea rows="4" data-user-bio-field class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-white outline-none focus:border-primary">Exploring ideas, people, and new conversations across the galaxy.</textarea>
+            </label>
+
+            <div class="space-y-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-white">Private profile</span>
+                <button type="button" class="rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">On</button>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-white">Push notifications</span>
+                <button type="button" class="rounded-full bg-success/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#10B981]">Enabled</button>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-white">Matchmaking visibility</span>
+                <button type="button" class="rounded-full bg-warning/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F59E0B]">Friends only</button>
+              </div>
+            </div>
+
+            <button type="button" class="rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 text-sm font-medium text-white">Save settings</button>
+          </form>
+        </section>
+
+        <aside class="space-y-6">
+          <div class="glass rounded-2xl p-5">
+            <div class="eyebrow">SECURITY</div>
+            <div class="mt-4 space-y-3 text-sm text-[#CBD5E1]">
+              <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">Password last changed 6 days ago</div>
+              <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">Two-factor authentication not enabled</div>
+              <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">Recent login from Windows • 2:10 PM</div>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-5">
+            <div class="eyebrow">PREFERENCES</div>
+            <div class="mt-4 space-y-3 text-sm text-[#CBD5E1]">
+              <div class="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-3"><span>Dark theme</span><span class="text-white">Default</span></div>
+              <div class="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-3"><span>Language</span><span class="text-white">English</span></div>
+              <div class="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-3"><span>Timezone</span><span class="text-white">UTC +5:30</span></div>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
+  <script src="assets/js/main.js"></script>
+  <script>
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('mobile-sidebar')
+      if (sidebar) sidebar.classList.toggle('hidden')
+    }
+  </script>
+</body>
+</html>
