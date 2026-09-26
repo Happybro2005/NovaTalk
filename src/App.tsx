@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+=======
+import type { ReactNode } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './contexts/AuthContext'
+>>>>>>> origin/Shubh
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -8,6 +14,7 @@ import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import AdminGate from './pages/admin/AdminGate'
 import AdminDashboard from './pages/admin/AdminDashboard'
+<<<<<<< HEAD
 
 function PlaceholderPage({ title, description }: { title: string; description: string }) {
   return (
@@ -95,6 +102,32 @@ function StrangerChatPage() {
       </div>
     </div>
   )
+=======
+import StrangerChatPage from './pages/StrangerChatPage'
+import FriendsPage from './pages/FriendsPage'
+import RequestsPage from './pages/RequestsPage'
+import CommunitiesPage from './pages/CommunitiesPage'
+import NotificationsPage from './pages/NotificationsPage'
+import SettingsPage from './pages/SettingsPage'
+import SupportPage from './pages/SupportPage'
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { currentUser, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#050816] text-sm text-[#CBD5E1]">
+        Loading your orbit...
+      </div>
+    )
+  }
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+>>>>>>> origin/Shubh
 }
 
 export default function App() {
@@ -105,6 +138,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+<<<<<<< HEAD
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/stranger-chat" element={<StrangerChatPage />} />
@@ -117,6 +151,22 @@ export default function App() {
         <Route path="/admin" element={<AdminGate />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+=======
+
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/stranger-chat" element={<ProtectedRoute><StrangerChatPage /></ProtectedRoute>} />
+        <Route path="/study-match" element={<ProtectedRoute><StrangerChatPage /></ProtectedRoute>} />
+        <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+        <Route path="/friend-requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
+        <Route path="/communities" element={<ProtectedRoute><CommunitiesPage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+
+        <Route path="/admin" element={<AdminGate />} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+>>>>>>> origin/Shubh
       </Routes>
     </BrowserRouter>
   )

@@ -1,13 +1,62 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+<<<<<<< HEAD
 import { Link } from 'react-router-dom'
+=======
+import { Link, useNavigate } from 'react-router-dom'
+>>>>>>> origin/Shubh
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
 import { Button, GlassCard, Input } from '../components/ui'
+<<<<<<< HEAD
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
+=======
+import { useAuth } from '../contexts/AuthContext'
+
+export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const { login, loginWithGoogle } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email || !password) return setError('Please fill in all fields.')
+    try {
+      setError('')
+      setLoading(true)
+      await login(email, password)
+      navigate('/dashboard')
+    } catch (err: any) {
+      const msg = err?.code === 'auth/invalid-credential'
+        ? 'Invalid email or password.'
+        : err?.message ?? 'Failed to sign in.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleGoogle() {
+    try {
+      setError('')
+      setLoading(true)
+      await loginWithGoogle()
+      navigate('/dashboard')
+    } catch (err: any) {
+      setError(err?.message ?? 'Google sign-in failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+>>>>>>> origin/Shubh
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
@@ -20,9 +69,13 @@ export default function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="mb-8 flex justify-center">
+<<<<<<< HEAD
           <Link to="/">
             <Logo size="lg" />
           </Link>
+=======
+          <Link to="/"><Logo size="lg" /></Link>
+>>>>>>> origin/Shubh
         </div>
 
         <GlassCard strong className="glow-primary p-8">
@@ -31,14 +84,37 @@ export default function LoginPage() {
           </h1>
           <p className="mt-1.5 text-sm text-[#CBD5E1]">Sign in to pick up where you left orbit.</p>
 
+<<<<<<< HEAD
           <form className="mt-7 space-y-4" onSubmit={(e) => e.preventDefault()}>
             <Input label="Email" type="email" placeholder="you@example.com" icon={<Mail size={16} />} />
+=======
+          {error && (
+            <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
+          <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
+            <Input
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+              icon={<Mail size={16} />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+>>>>>>> origin/Shubh
             <div>
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 icon={<Lock size={16} />}
+<<<<<<< HEAD
+=======
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+>>>>>>> origin/Shubh
               />
               <button
                 type="button"
@@ -60,8 +136,13 @@ export default function LoginPage() {
               </Link>
             </div>
 
+<<<<<<< HEAD
             <Button type="submit" size="lg" className="w-full">
               Sign in
+=======
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign in'}
+>>>>>>> origin/Shubh
             </Button>
           </form>
 
@@ -71,7 +152,11 @@ export default function LoginPage() {
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
+<<<<<<< HEAD
           <Button variant="secondary" size="lg" className="w-full">
+=======
+          <Button variant="secondary" size="lg" className="w-full" onClick={handleGoogle} disabled={loading}>
+>>>>>>> origin/Shubh
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
               <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />
