@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — NovaTalk</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          colors: {
+            bg: '#050816',
+            'bg-secondary': '#0F172A',
+            primary: '#4F8CFF',
+            accent: '#7C3AED',
+            success: '#10B981',
+            warning: '#F59E0B',
+            danger: '#EF4444',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-bg text-white font-body selection:bg-primary/35 selection:text-white antialiased">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816]">
+    <canvas id="constellation-canvas" data-density="30" class="absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+    <div class="grain absolute inset-0"></div>
+  </div>
+
+  <div class="relative min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-5xl">
+      <header class="mb-6 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="const next = document.referrer && document.referrer.includes(window.location.host) ? document.referrer : 'dashboard.html'; window.location.href = next;" class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-[#CBD5E1] hover:bg-white/[0.06]" aria-label="Go back">
+            <i data-lucide="arrow-left" class="h-5 w-5"></i>
+          </button>
+          <div>
+            <div class="eyebrow">PROFILE</div>
+            <h1 class="mt-1 text-3xl font-semibold tracking-tight text-white font-display">My profile</h1>
+          </div>
+        </div>
+
+        <button data-logout-button type="button" class="inline-flex items-center gap-2 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/15">
+          <i data-lucide="log-out" class="h-4 w-4"></i>
+          Log out
+        </button>
+      </header>
+
+      <main class="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <aside class="glass-strong rounded-2xl p-6">
+          <div class="flex flex-col items-center text-center">
+            <div data-user-initials class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl font-semibold">YN</div>
+            <h2 data-user-name class="mt-4 text-2xl font-semibold text-white">Your Name</h2>
+            <p data-user-username class="mt-1 text-sm text-[#CBD5E1]">@username</p>
+          </div>
+
+          <div class="mt-6 space-y-3 text-sm text-[#CBD5E1]">
+            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+              <div class="text-xs uppercase tracking-[0.2em] text-[#CBD5E1]/60">Bio</div>
+              <p data-user-bio class="mt-2 text-white/90">Exploring ideas, people, and new conversations across the galaxy.</p>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+              <div class="text-xs uppercase tracking-[0.2em] text-[#CBD5E1]/60">Email</div>
+              <p class="mt-2 text-white">you@example.com</p>
+            </div>
+          </div>
+        </aside>
+
+        <section class="glass-strong rounded-2xl p-6 sm:p-8">
+          <div class="mb-6">
+            <div class="eyebrow">ACCOUNT</div>
+            <h2 class="mt-1 text-2xl font-semibold text-white font-display">Profile details</h2>
+          </div>
+
+          <div class="grid gap-5 md:grid-cols-2">
+            <label class="block text-sm text-[#CBD5E1]">
+              <span class="mb-2 block">Display name</span>
+              <input type="text" data-user-display-name value="Your Name" class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-white outline-none focus:border-primary">
+            </label>
+
+            <label class="block text-sm text-[#CBD5E1]">
+              <span class="mb-2 block">Username</span>
+              <input type="text" data-user-display-username value="@username" class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-white outline-none focus:border-primary">
+            </label>
+
+            <label class="block text-sm text-[#CBD5E1] md:col-span-2">
+              <span class="mb-2 block">Bio</span>
+              <textarea rows="4" data-user-bio-field class="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-white outline-none focus:border-primary">Exploring ideas, people, and new conversations across the galaxy.</textarea>
+            </label>
+          </div>
+
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3d7eff]">Save changes</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutButton = document.querySelector('[data-logout-button]');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+          localStorage.removeItem('novatalk-user');
+          window.location.href = 'login.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

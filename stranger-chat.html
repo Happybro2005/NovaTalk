@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stranger Chat — NovaTalk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          colors: {
+            bg: '#050816',
+            'bg-secondary': '#0F172A',
+            primary: '#4F8CFF',
+            accent: '#7C3AED',
+            success: '#10B981',
+            warning: '#F59E0B',
+            danger: '#EF4444',
+            'text-primary': '#FFFFFF',
+            'text-secondary': '#CBD5E1',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-bg text-white font-body selection:bg-primary/35 selection:text-white antialiased">
+  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816]">
+    <canvas id="constellation-canvas" data-density="40" class="absolute inset-0 h-full w-full" aria-hidden="true"></canvas>
+    <div class="grain absolute inset-0"></div>
+  </div>
+
+  <div class="relative min-h-screen">
+    <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#050816]/60 backdrop-blur-xl lg:flex">
+      <div class="px-6 py-6">
+        <a href="index.html" class="flex items-center gap-2">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
+            <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+          </div>
+          <span class="text-xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+        </a>
+      </div>
+      <nav class="flex-1 space-y-1 px-3">
+        <a href="dashboard.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="layout-dashboard" class="h-[18px] w-[18px]"></i> Dashboard</a>
+        <a href="stranger-chat.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all glass text-white glow-primary"><i data-lucide="message-circle" class="h-[18px] w-[18px]"></i> Stranger Chat</a>
+        <a href="friends.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="users" class="h-[18px] w-[18px]"></i> Friends</a>
+        <a href="friend-requests.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="user-plus" class="h-[18px] w-[18px]"></i> Requests</a>
+        <a href="communities.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="compass" class="h-[18px] w-[18px]"></i> Communities</a>
+        <a href="notifications.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="bell" class="h-[18px] w-[18px]"></i> Notifications</a>
+        <a href="settings.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="settings" class="h-[18px] w-[18px]"></i> Settings</a>
+        <a href="support.html" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white transition-all"><i data-lucide="life-buoy" class="h-[18px] w-[18px]"></i> Support</a>
+      </nav>
+    </aside>
+
+    <div id="mobile-sidebar" class="fixed inset-0 z-50 hidden lg:hidden">
+      <div class="absolute inset-0 bg-black/60" onclick="toggleMobileSidebar()"></div>
+      <aside class="glass-strong absolute left-0 top-0 flex h-full w-72 flex-col p-4">
+        <div class="mb-6 flex items-center justify-between px-2 py-2">
+          <a href="index.html" class="flex items-center gap-2">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_0_20px_-3px_rgba(79,140,255,0.5)]">
+              <i data-lucide="sparkles" class="h-5 w-5 text-white"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight text-white font-display">NovaTalk</span>
+          </a>
+          <button onclick="toggleMobileSidebar()" class="text-[#CBD5E1]">
+            <i data-lucide="x" class="h-5 w-5"></i>
+          </button>
+        </div>
+        <nav class="space-y-1">
+          <a href="dashboard.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="layout-dashboard" class="h-[18px] w-[18px]"></i> Dashboard</a>
+          <a href="stranger-chat.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3.5 py-2.5 text-sm font-medium text-white"><i data-lucide="message-circle" class="h-[18px] w-[18px]"></i> Stranger Chat</a>
+          <a href="friends.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="users" class="h-[18px] w-[18px]"></i> Friends</a>
+          <a href="friend-requests.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="user-plus" class="h-[18px] w-[18px]"></i> Requests</a>
+          <a href="communities.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="compass" class="h-[18px] w-[18px]"></i> Communities</a>
+          <a href="notifications.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="bell" class="h-[18px] w-[18px]"></i> Notifications</a>
+          <a href="settings.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="settings" class="h-[18px] w-[18px]"></i> Settings</a>
+          <a href="support.html" onclick="toggleMobileSidebar()" class="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06]"><i data-lucide="life-buoy" class="h-[18px] w-[18px]"></i> Support</a>
+        </nav>
+      </aside>
+    </div>
+
+    <div class="min-h-screen flex-1 px-4 pb-16 pt-6 sm:px-6">
+      <header class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleMobileSidebar()" class="text-[#CBD5E1] lg:hidden">
+            <i data-lucide="menu" class="h-[22px] w-[22px]"></i>
+          </button>
+          <div>
+            <div class="eyebrow">STRANGER CHAT</div>
+            <h1 class="mt-1 text-3xl font-semibold tracking-tight text-white font-display">Find your next conversation</h1>
+          </div>
+        </div>
+      </header>
+
+      <main class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <section class="glass rounded-2xl p-6">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-[#CBD5E1]">Live matching</p>
+              <h2 class="mt-1 text-2xl font-semibold text-white font-display">Ready to connect</h2>
+            </div>
+            <button id="matchBtn" class="rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 text-sm font-medium text-white shadow-lg shadow-primary/20 hover:brightness-110">Start stranger chat</button>
+          </div>
+
+          <div id="statusBox" class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-[#CBD5E1]">
+            Looking for someone new to talk to...
+          </div>
+
+          <div class="mt-6 grid gap-4 sm:grid-cols-3">
+            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div class="text-xs uppercase tracking-[0.2em] text-[#CBD5E1]/60">Queue</div>
+              <div id="queueCount" class="mt-3 text-2xl font-semibold text-white">0</div>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div class="text-xs uppercase tracking-[0.2em] text-[#CBD5E1]/60">Matches</div>
+              <div id="matchCount" class="mt-3 text-2xl font-semibold text-white">0</div>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <div class="text-xs uppercase tracking-[0.2em] text-[#CBD5E1]/60">Status</div>
+              <div id="statusBadge" class="mt-3 inline-block rounded-full bg-success/15 px-2.5 py-1 text-xs font-medium text-[#10B981]">Online</div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="space-y-6">
+          <div class="glass rounded-2xl p-5">
+            <div class="eyebrow">MATCH INFO</div>
+            <div id="matchInfo" class="mt-4 space-y-2 text-sm text-[#CBD5E1]">
+              No match yet. Tap the button to begin.
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('mobile-sidebar')
+      if (sidebar) sidebar.classList.toggle('hidden')
+    }
+
+    const matchBtn = document.getElementById('matchBtn')
+    const statusBox = document.getElementById('statusBox')
+    const matchInfo = document.getElementById('matchInfo')
+    const queueCount = document.getElementById('queueCount')
+    const matchCount = document.getElementById('matchCount')
+
+    async function refreshQueue() {
+      try {
+        const response = await fetch('/api/matchmaking/queue')
+        const data = await response.json()
+        queueCount.textContent = data.waitingUsers?.length || 0
+        matchCount.textContent = data.activeMatches?.length || 0
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    async function startMatch() {
+      matchBtn.disabled = true
+      statusBox.textContent = 'Looking for a stranger...'
+      matchBtn.textContent = 'Searching...'
+
+      try {
+        const response = await fetch('/api/matchmaking/queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: 'u1' })
+        })
+
+        const payload = await response.json()
+        if (payload.matched) {
+          statusBox.textContent = `Matched with ${payload.partner?.name || 'a stranger'}. Start the conversation.`
+          matchInfo.innerHTML = `
+            <div><strong class="text-white">Partner:</strong> ${payload.partner?.name || 'Unknown'}</div>
+            <div><strong class="text-white">Chat ID:</strong> ${payload.chatId || 'n/a'}</div>
+            <div><strong class="text-white">Status:</strong> Connected</div>
+          `
+        } else {
+          statusBox.textContent = payload.message || 'Added to the queue. Waiting for a match...'
+          matchInfo.innerHTML = `
+            <div><strong class="text-white">Status:</strong> Waiting in queue</div>
+            <div><strong class="text-white">Queue position:</strong> ${payload.queuePosition || 1}</div>
+            <div><strong class="text-white">User:</strong> u1</div>
+          `
+        }
+      } catch (error) {
+        statusBox.textContent = 'The backend is unavailable. Start the Express server first.'
+        console.error(error)
+      } finally {
+        matchBtn.disabled = false
+        matchBtn.textContent = 'Start stranger chat'
+        await refreshQueue()
+      }
+    }
+
+    matchBtn.addEventListener('click', startMatch)
+    refreshQueue()
+  </script>
+</body>
+</html>
