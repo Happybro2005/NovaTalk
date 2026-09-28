@@ -1,10 +1,15 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { type ReactNode, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 =======
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 >>>>>>> origin/Shubh
+=======
+import { type ReactNode, useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import {
   LayoutDashboard,
   MessageCircle,
@@ -18,6 +23,7 @@ import {
   X,
   Search,
 <<<<<<< HEAD
+<<<<<<< HEAD
 } from 'lucide-react'
 import Logo from './Logo'
 import AmbientBackdrop from './AmbientBackdrop'
@@ -26,6 +32,8 @@ const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Stranger Chat', icon: MessageCircle, to: '/stranger-chat' },
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   LogOut,
 } from 'lucide-react'
 import { collection, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
@@ -38,7 +46,10 @@ import { db } from '../firebase'
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Study Match', icon: MessageCircle, to: '/study-match' },
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   { label: 'Friends', icon: Users, to: '/friends' },
   { label: 'Requests', icon: UserPlus, to: '/friend-requests' },
   { label: 'Communities', icon: Compass, to: '/communities' },
@@ -49,6 +60,7 @@ const navItems = [
 
 const mobileNavItems = navItems.slice(0, 5)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 function getStoredUser() {
   try {
@@ -77,6 +89,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const storedUser = getStoredUser() || { name: 'Your Name', username: '@username' }
   const initials = getInitials(storedUser.name)
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 export default function AppShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [studyUnread, setStudyUnread] = useState(false)
@@ -110,11 +124,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
     return unsubscribe
   }, [currentUser])
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 
   return (
     <div className="relative min-h-screen">
       <AmbientBackdrop variant="quiet" />
+<<<<<<< HEAD
 <<<<<<< HEAD
 
       <div className="flex">
@@ -139,6 +157,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   <item.icon size={18} />
                   {item.label}
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
       <div className="flex">{/* existing content unchanged */}
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#050816]/60 backdrop-blur-xl lg:flex">
           <div className="px-6 py-6"><Logo /></div>
@@ -151,12 +171,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   <item.icon size={18} />
                   {item.label}
                   {unreadDot && <span className="ml-auto h-2.5 w-2.5 rounded-full bg-[#EF4444]" />}
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
                 </Link>
               )
             })}
           </nav>
           <div className="border-t border-white/[0.06] p-4">
+<<<<<<< HEAD
 <<<<<<< HEAD
             <div className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.05]">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">
@@ -172,6 +196,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
         {/* Mobile sidebar drawer */}
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             <Link to="/profile" className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.05]">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold text-white">{currentUser?.displayName?.[0]?.toUpperCase() || 'U'}</div>
               <div className="min-w-0 flex-1">
@@ -185,13 +211,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
             <aside className="glass-strong absolute left-0 top-0 h-full w-72 p-4">
               <div className="mb-6 flex items-center justify-between px-2 py-2">
                 <Logo />
+<<<<<<< HEAD
 <<<<<<< HEAD
                 <button onClick={() => setSidebarOpen(false)} className="text-[#CBD5E1]">
                   <X size={20} />
@@ -211,6 +241,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 ))}
               </nav>
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
                 <button onClick={() => setSidebarOpen(false)} className="text-[#CBD5E1]"><X size={20} /></button>
               </div>
               <nav className="space-y-1">
@@ -230,11 +262,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   <LogOut size={16} /> Logout
                 </Button>
               </div>
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             </aside>
           </div>
         )}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         {/* Main column */}
         <div className="min-h-screen flex-1">
@@ -282,6 +318,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <item.icon size={19} />
               {item.label.split(' ')[0]}
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         <div className="min-h-screen flex-1">
           <header className="sticky top-0 z-30 flex items-center gap-4 border-b border-white/[0.06] bg-[#050816]/70 px-4 py-3.5 backdrop-blur-xl sm:px-6">
             <button onClick={() => setSidebarOpen(true)} className="text-[#CBD5E1] lg:hidden"><Menu size={22} /></button>
@@ -306,7 +344,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <item.icon size={19} />
               {item.label.split(' ')[0]}
               {unreadDot && <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-[#EF4444]" />}
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             </Link>
           )
         })}

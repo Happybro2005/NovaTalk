@@ -15,6 +15,7 @@ import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
 import { Button, Eyebrow, MotionGlassCard, GlassCard } from '../components/ui'
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 const stats = [
   { value: '2.4M+', label: 'Conversations sparked' },
@@ -22,6 +23,8 @@ const stats = [
   { value: '40K', label: 'Communities orbiting' },
   { value: '99.9%', label: 'Uptime across the galaxy' },
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { useAuth } from '../contexts/AuthContext'
 
 const stats = [
@@ -29,12 +32,16 @@ const stats = [
   { value: '180+', label: 'Campuses connected' },
   { value: '40K', label: 'Project groups orbiting' },
   { value: '99.9%', label: 'Realtime sync uptime' },
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 ]
 
 const features = [
   {
     tag: 'ORION',
+<<<<<<< HEAD
 <<<<<<< HEAD
     title: 'Stranger Match',
     desc: 'A matching engine that pairs you with someone new in under a second — like a hunter finding its mark in a crowded sky.',
@@ -42,10 +49,15 @@ const features = [
     title: 'AI Study Match',
     desc: 'A matching engine that pairs you with students by department, semester, subjects, interests, and skills in seconds.',
 >>>>>>> origin/Shubh
+=======
+    title: 'AI Study Match',
+    desc: 'A matching engine that pairs you with students by department, semester, subjects, interests, and skills in seconds.',
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
     icon: Sparkles,
   },
   {
     tag: 'LYRA',
+<<<<<<< HEAD
 <<<<<<< HEAD
     title: 'Communities',
     desc: 'Small constellations of people who share your frequency — join, post, and grow a space around what you care about.',
@@ -53,10 +65,15 @@ const features = [
     title: 'Study groups',
     desc: 'Small constellations built around subjects and project goals — join, post, and learn together.',
 >>>>>>> origin/Shubh
+=======
+    title: 'Study groups',
+    desc: 'Small constellations built around subjects and project goals — join, post, and learn together.',
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
     icon: Users,
   },
   {
     tag: 'POLARIS',
+<<<<<<< HEAD
 <<<<<<< HEAD
     title: 'Friends, always findable',
     desc: 'The one contact that never moves. Turn a good stranger chat into a lasting connection you can always find again.',
@@ -64,6 +81,10 @@ const features = [
     title: 'Mentors and peers',
     desc: 'Turn a good study match into a lasting academic connection you can always find again.',
 >>>>>>> origin/Shubh
+=======
+    title: 'Mentors and peers',
+    desc: 'Turn a good study match into a lasting academic connection you can always find again.',
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
     icon: Star,
   },
   {
@@ -81,12 +102,17 @@ const features = [
   {
     tag: 'CARTOGRAPHY',
 <<<<<<< HEAD
+<<<<<<< HEAD
     title: 'A world, not a feed',
     desc: 'Discover people and communities across languages and time zones with a map that actually feels alive.',
 =======
     title: 'A campus network, not a feed',
     desc: 'Discover students, departments, and communities across campus with a map that actually feels alive.',
 >>>>>>> origin/Shubh
+=======
+    title: 'A campus network, not a feed',
+    desc: 'Discover students, departments, and communities across campus with a map that actually feels alive.',
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
     icon: Globe2,
   },
 ]
@@ -94,6 +120,7 @@ const features = [
 const testimonials = [
   {
     quote:
+<<<<<<< HEAD
 <<<<<<< HEAD
       'I matched with someone in Lagos over a shared obsession with vinyl records. Three months later we still talk daily.',
     name: 'Amara O.',
@@ -109,6 +136,8 @@ const testimonials = [
     name: 'Priya S.',
     role: 'Stranger Chat regular',
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
       'I found a coding partner in my department and we finished a project I had been stuck on for weeks.',
     name: 'Student A',
     role: 'Computer Science, Semester 5',
@@ -122,16 +151,24 @@ const testimonials = [
     quote: 'It feels like the campus network I always wanted — helpful, fast, and actually specific to what I need.',
     name: 'Student C',
     role: 'Study match regular',
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   },
 ]
 
 export default function LandingPage() {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   const { currentUser } = useAuth()
 
 >>>>>>> origin/Shubh
+=======
+  const { currentUser } = useAuth()
+
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   return (
     <div className="relative min-h-screen font-[var(--font-body)]">
       <AmbientBackdrop />
@@ -165,9 +202,12 @@ export default function LandingPage() {
           transition={{ duration: 0.6 }}
         >
 <<<<<<< HEAD
+<<<<<<< HEAD
           <Eyebrow>LIVE · 84,213 STRANGERS ONLINE NOW</Eyebrow>
 =======
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         </motion.div>
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
@@ -177,6 +217,7 @@ export default function LandingPage() {
           style={{ fontFamily: 'var(--font-display)' }}
         >
 <<<<<<< HEAD
+<<<<<<< HEAD
           Every stranger is a
           <br />
           <span className="text-gradient">star you haven't met.</span>
@@ -185,6 +226,11 @@ export default function LandingPage() {
           <br />
           <span className="text-gradient">potential collaborator.</span>
 >>>>>>> origin/Shubh
+=======
+          Every student is a
+          <br />
+          <span className="text-gradient">potential collaborator.</span>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 24 }}
@@ -192,6 +238,7 @@ export default function LandingPage() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mx-auto mt-6 max-w-xl text-lg text-[#CBD5E1]"
         >
+<<<<<<< HEAD
 <<<<<<< HEAD
           NovaTalk pairs you with real people in real time, then helps the good
           ones stick — through friends, communities, and a map of conversation
@@ -201,6 +248,11 @@ export default function LandingPage() {
           matches stick — through study partners, project teams, communities, and
           live doubt-solving spaces.
 >>>>>>> origin/Shubh
+=======
+          NovaTalk pairs you with the right students in real time, then helps the good
+          matches stick — through study partners, project teams, communities, and
+          live doubt-solving spaces.
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -211,6 +263,7 @@ export default function LandingPage() {
           <Link to="/register">
             <Button size="lg" className="group">
 <<<<<<< HEAD
+<<<<<<< HEAD
               Start a conversation
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
             </Button>
@@ -218,13 +271,18 @@ export default function LandingPage() {
           <Link to="/dashboard">
             <Button size="lg" variant="secondary">See it in action</Button>
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               Find a study match
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
             </Button>
           </Link>
           <Link to={currentUser ? '/dashboard' : '/login'}>
             <Button size="lg" variant="secondary">See the network</Button>
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </Link>
         </motion.div>
 
@@ -238,10 +296,14 @@ export default function LandingPage() {
           <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3">
             <div className="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse-glow" />
 <<<<<<< HEAD
+<<<<<<< HEAD
             <span className="eyebrow">MATCHED · SOMEWHERE NEAR REYKJAVÍK</span>
 =======
               <span className="eyebrow">MATCHED · COMPUTER SCIENCE, SEMESTER 5</span>
 >>>>>>> origin/Shubh
+=======
+              <span className="eyebrow">MATCHED · COMPUTER SCIENCE, SEMESTER 5</span>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </div>
           <div className="mt-4 space-y-3">
             <div className="flex justify-start">
@@ -284,16 +346,22 @@ export default function LandingPage() {
           <Eyebrow>THE CATALOG</Eyebrow>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
 <<<<<<< HEAD
+<<<<<<< HEAD
             Six ways NovaTalk maps a conversation
           </h2>
           <p className="mt-3 text-[#CBD5E1]">
             Every part of the product is named for the piece of sky it plays — a small nod to the thing that inspired it.
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             Six ways NovaTalk maps a student network
           </h2>
           <p className="mt-3 text-[#CBD5E1]">
             Every part of the product is named for the piece of campus life it helps organize — matching, grouping, and collaborating.
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </p>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -316,10 +384,14 @@ export default function LandingPage() {
           <Eyebrow>FIELD REPORTS</Eyebrow>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
 <<<<<<< HEAD
+<<<<<<< HEAD
             People who found their orbit
 =======
             Students who found their team
 >>>>>>> origin/Shubh
+=======
+            Students who found their team
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </h2>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-3">
@@ -346,10 +418,14 @@ export default function LandingPage() {
           <Eyebrow>COMING TO YOUR POCKET</Eyebrow>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
 <<<<<<< HEAD
+<<<<<<< HEAD
             Take the sky with you
 =======
             Take your campus network with you
 >>>>>>> origin/Shubh
+=======
+            Take your campus network with you
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </h2>
           <p className="mx-auto mt-3 max-w-md text-[#CBD5E1]">
             Native apps for iOS and Android are in orbit — join the list to be notified the moment they launch.

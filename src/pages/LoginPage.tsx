@@ -1,19 +1,26 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Link } from 'react-router-dom'
 =======
 import { Link, useNavigate } from 'react-router-dom'
 >>>>>>> origin/Shubh
+=======
+import { Link, useNavigate } from 'react-router-dom'
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
 import { Button, GlassCard, Input } from '../components/ui'
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { useAuth } from '../contexts/AuthContext'
 
 export default function LoginPage() {
@@ -56,7 +63,10 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
@@ -70,12 +80,16 @@ export default function LoginPage() {
       >
         <div className="mb-8 flex justify-center">
 <<<<<<< HEAD
+<<<<<<< HEAD
           <Link to="/">
             <Logo size="lg" />
           </Link>
 =======
           <Link to="/"><Logo size="lg" /></Link>
 >>>>>>> origin/Shubh
+=======
+          <Link to="/"><Logo size="lg" /></Link>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         </div>
 
         <GlassCard strong className="glow-primary p-8">
@@ -85,9 +99,12 @@ export default function LoginPage() {
           <p className="mt-1.5 text-sm text-[#CBD5E1]">Sign in to pick up where you left orbit.</p>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
           <form className="mt-7 space-y-4" onSubmit={(e) => e.preventDefault()}>
             <Input label="Email" type="email" placeholder="you@example.com" icon={<Mail size={16} />} />
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           {error && (
             <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
@@ -103,7 +120,10 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             <div>
               <Input
                 label="Password"
@@ -111,10 +131,15 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 icon={<Lock size={16} />}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
 >>>>>>> origin/Shubh
+=======
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               />
               <button
                 type="button"
@@ -137,12 +162,17 @@ export default function LoginPage() {
             </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             <Button type="submit" size="lg" className="w-full">
               Sign in
 =======
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}
 >>>>>>> origin/Shubh
+=======
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign in'}
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             </Button>
           </form>
 
@@ -153,10 +183,14 @@ export default function LoginPage() {
           </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
           <Button variant="secondary" size="lg" className="w-full">
 =======
           <Button variant="secondary" size="lg" className="w-full" onClick={handleGoogle} disabled={loading}>
 >>>>>>> origin/Shubh
+=======
+          <Button variant="secondary" size="lg" className="w-full" onClick={handleGoogle} disabled={loading}>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" />
               <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />

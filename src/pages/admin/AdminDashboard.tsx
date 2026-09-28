@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { motion } from 'framer-motion'
 import {
   Users,
@@ -199,6 +200,8 @@ export default function AdminDashboard() {
       </div>
     </div>
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { Layers3 } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 import { Badge, GlassCard } from '../../components/ui'
@@ -215,6 +218,9 @@ export default function AdminDashboard() {
         <Badge className="mt-4" tone="neutral">Dashboard ready</Badge>
       </GlassCard>
     </AppShell>
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   )
 }

@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 =======
@@ -6,6 +7,11 @@ import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 >>>>>>> origin/Shubh
+=======
+import type { ReactNode } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './contexts/AuthContext'
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -14,6 +20,7 @@ import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import AdminGate from './pages/admin/AdminGate'
 import AdminDashboard from './pages/admin/AdminDashboard'
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 function PlaceholderPage({ title, description }: { title: string; description: string }) {
@@ -103,6 +110,8 @@ function StrangerChatPage() {
     </div>
   )
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import StrangerChatPage from './pages/StrangerChatPage'
 import FriendsPage from './pages/FriendsPage'
 import RequestsPage from './pages/RequestsPage'
@@ -127,7 +136,10 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 }
 
 export default function App() {
@@ -138,6 +150,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+<<<<<<< HEAD
 <<<<<<< HEAD
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
@@ -152,6 +165,8 @@ export default function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
@@ -166,7 +181,10 @@ export default function App() {
 
         <Route path="/admin" element={<AdminGate />} />
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
       </Routes>
     </BrowserRouter>
   )

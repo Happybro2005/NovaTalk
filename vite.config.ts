@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
 <<<<<<< HEAD
+<<<<<<< HEAD
   server: {
     port: 5173,
     proxy: {
@@ -25,4 +26,6 @@ export default defineConfig({
   },
 =======
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 })

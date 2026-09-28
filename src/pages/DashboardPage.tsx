@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -9,6 +10,8 @@ import { Badge, GlassCard, MotionGlassCard, Button, Eyebrow } from '../component
 const quickActions = [
   { label: 'New stranger chat', icon: Shuffle, to: '/stranger-chat', tone: 'primary' as const },
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -22,11 +25,15 @@ import type { Conversation, User } from '../types/models'
 
 const quickActions = [
   { label: 'Find study partner', icon: Shuffle, to: '/study-match', tone: 'primary' as const },
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   { label: 'Browse friends', icon: Users, to: '/friends', tone: 'success' as const },
   { label: 'Explore communities', icon: Compass, to: '/communities', tone: 'warning' as const },
 ]
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 const fallbackSuggestedFriends = [
   { name: 'Sana P.', mutual: '3 mutual communities' },
@@ -133,6 +140,8 @@ export default function DashboardPage() {
   }, [])
 
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 export default function DashboardPage() {
   const { currentUser } = useAuth()
   const [recentChats, setRecentChats] = useState<any[]>([])
@@ -192,17 +201,24 @@ export default function DashboardPage() {
     }
     fetchData()
   }, [currentUser])
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   return (
     <AppShell>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <Eyebrow>DASHBOARD</Eyebrow>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white" style={{ fontFamily: 'var(--font-display)' }}>
 <<<<<<< HEAD
+<<<<<<< HEAD
           Welcome back, {profile.name.split(' ')[0] || 'Friend'}
 =======
           Welcome back, {currentUser?.displayName || 'User'}
 >>>>>>> origin/Shubh
+=======
+          Welcome back, {currentUser?.displayName || 'User'}
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         </h1>
         <p className="mt-1.5 text-[#CBD5E1]">Here's what's happening across your orbit today.</p>
       </motion.div>
@@ -212,10 +228,14 @@ export default function DashboardPage() {
           <Link key={a.label} to={a.to}>
             <MotionGlassCard delay={i * 0.05} className="flex items-center gap-3 p-5">
 <<<<<<< HEAD
+<<<<<<< HEAD
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#4F8CFF]/15 text-[#4F8CFF]">
 =======
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-[#4F8CFF]/15 text-[#4F8CFF]`}>
 >>>>>>> origin/Shubh
+=======
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-[#4F8CFF]/15 text-[#4F8CFF]`}>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
                 <a.icon size={20} />
               </div>
               <span className="text-sm font-medium text-white">{a.label}</span>
@@ -231,6 +251,7 @@ export default function DashboardPage() {
               <h2 className="font-semibold text-white">Recent chats</h2>
               <Link to="/friends" className="text-xs text-[#4F8CFF] hover:underline">View all</Link>
             </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
             <div className="space-y-1">
               {(loading ? [
@@ -288,6 +309,8 @@ export default function DashboardPage() {
               ))}
             </div>
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             {recentChats.length === 0 ? (
                <p className="text-sm text-[#CBD5E1]">No recent chats. Start one!</p>
             ) : (
@@ -311,12 +334,16 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </GlassCard>
         </div>
 
         <div className="space-y-6">
           <GlassCard className="p-5">
+<<<<<<< HEAD
 <<<<<<< HEAD
             <h2 className="mb-4 font-semibold text-white">Online now</h2>
             <div className="flex flex-wrap gap-3">
@@ -366,6 +393,8 @@ export default function DashboardPage() {
               ))}
             </div>
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             <h2 className="mb-4 font-semibold text-white">Suggested friends</h2>
             {friends.length === 0 ? (
                <p className="text-sm text-[#CBD5E1]">No other users found.</p>
@@ -385,7 +414,10 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           </GlassCard>
         </div>
       </div>

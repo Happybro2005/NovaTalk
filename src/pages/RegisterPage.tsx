@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Link } from 'react-router-dom'
 import { Camera, Mail, Lock, User, AtSign, Globe } from 'lucide-react'
 import AmbientBackdrop from '../components/AmbientBackdrop'
@@ -19,6 +20,8 @@ export default function RegisterPage() {
   const [otpCode, setOtpCode] = useState('')
   const [otpMessage, setOtpMessage] = useState('')
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { Link, useNavigate } from 'react-router-dom'
 import { Camera, Mail, Lock, User, AtSign, Globe, Calendar } from 'lucide-react'
 import AmbientBackdrop from '../components/AmbientBackdrop'
@@ -53,7 +56,10 @@ export default function RegisterPage() {
 
   const { register } = useAuth()
   const navigate = useNavigate()
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests((prev) =>
@@ -61,6 +67,7 @@ export default function RegisterPage() {
     )
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   const sendOtp = () => {
     const email = (document.querySelector('input[name="email"]') as HTMLInputElement | null)?.value?.trim() || ''
@@ -125,6 +132,8 @@ export default function RegisterPage() {
     localStorage.setItem('novatalk-user', JSON.stringify(profile))
     window.location.href = '/dashboard'
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   const toggleSubject = (subject: string) => {
     setSelectedSubjects((prev) =>
       prev.includes(subject) ? prev.filter((item) => item !== subject) : [...prev, subject]
@@ -163,7 +172,10 @@ export default function RegisterPage() {
     } finally {
       setLoading(false)
     }
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   }
 
   return (
@@ -178,12 +190,16 @@ export default function RegisterPage() {
       >
         <div className="mb-8 flex justify-center">
 <<<<<<< HEAD
+<<<<<<< HEAD
           <Link to="/">
             <Logo size="lg" />
           </Link>
 =======
           <Link to="/"><Logo size="lg" /></Link>
 >>>>>>> origin/Shubh
+=======
+          <Link to="/"><Logo size="lg" /></Link>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
         </div>
 
         <GlassCard strong className="glow-primary p-8">
@@ -194,14 +210,20 @@ export default function RegisterPage() {
           <p className="mt-1.5 text-sm text-[#CBD5E1]">A few details, then you're out among the stars.</p>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           {error && (
             <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {error}
             </div>
           )}
 
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
           <form className="mt-7 space-y-6" onSubmit={handleSubmit}>
             {/* Avatar upload */}
             <div className="flex items-center gap-4">
@@ -221,6 +243,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
+<<<<<<< HEAD
 <<<<<<< HEAD
               <Input name="displayName" label="Display name" placeholder="Your name" icon={<User size={16} />} />
               <Input name="username" label="Username" placeholder="@username" icon={<AtSign size={16} />} />
@@ -257,6 +280,8 @@ export default function RegisterPage() {
               <Input name="password" label="Password" type="password" placeholder="••••••••" icon={<Lock size={16} />} />
               <Input name="confirmPassword" label="Confirm password" type="password" placeholder="••••••••" icon={<Lock size={16} />} />
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               <Input
                 label="First name"
                 placeholder="First name"
@@ -315,7 +340,10 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -324,12 +352,17 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Globe size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#CBD5E1]/70" />
 <<<<<<< HEAD
+<<<<<<< HEAD
                   <select name="country" className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
                     <option className="bg-[#0F172A]" defaultValue="India">India</option>
 =======
                   <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
                     <option className="bg-[#0F172A]">India</option>
 >>>>>>> origin/Shubh
+=======
+                  <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
+                    <option className="bg-[#0F172A]">India</option>
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
                     <option className="bg-[#0F172A]">United States</option>
                     <option className="bg-[#0F172A]">United Kingdom</option>
                     <option className="bg-[#0F172A]">Japan</option>
@@ -337,15 +370,21 @@ export default function RegisterPage() {
                 </div>
               </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Gender</label>
                 <select name="gender" className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               <Input label="Date of birth" type="date" icon={<Calendar size={16} />} />
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Gender</label>
                 <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
                   <option className="bg-[#0F172A]">Prefer not to say</option>
                   <option className="bg-[#0F172A]">Male</option>
                   <option className="bg-[#0F172A]">Female</option>
@@ -357,10 +396,14 @@ export default function RegisterPage() {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#CBD5E1]">Language</label>
 <<<<<<< HEAD
+<<<<<<< HEAD
               <select name="language" className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
 =======
               <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
 >>>>>>> origin/Shubh
+=======
+              <select className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white outline-none focus:border-[#4F8CFF]/60 focus:ring-2 focus:ring-[#4F8CFF]/20">
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
                 <option className="bg-[#0F172A]">English</option>
                 <option className="bg-[#0F172A]">Hindi</option>
                 <option className="bg-[#0F172A]">Spanish</option>
@@ -370,7 +413,10 @@ export default function RegisterPage() {
 
             <div>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               <label className="mb-2 block text-sm font-medium text-[#CBD5E1]">Subjects</label>
               <div className="flex flex-wrap gap-2">
                 {subjects.map((subject) => {
@@ -394,7 +440,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               <label className="mb-2 block text-sm font-medium text-[#CBD5E1]">Interests</label>
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest) => {
@@ -418,9 +467,12 @@ export default function RegisterPage() {
             </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             <label className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
               <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5 accent-[#4F8CFF]" />
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             <div>
               <label className="mb-2 block text-sm font-medium text-[#CBD5E1]">Skills</label>
               <div className="flex flex-wrap gap-2">
@@ -451,11 +503,15 @@ export default function RegisterPage() {
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
               I agree to the <a href="#" className="text-[#4F8CFF] hover:underline">Terms of Service</a> and{' '}
               <a href="#" className="text-[#4F8CFF] hover:underline">Privacy Policy</a>.
             </label>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
             <Button type="submit" size="lg" className="w-full">
               Create account
@@ -463,6 +519,10 @@ export default function RegisterPage() {
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading ? 'Creating account…' : 'Create account'}
 >>>>>>> origin/Shubh
+=======
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? 'Creating account…' : 'Create account'}
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
             </Button>
           </form>
 

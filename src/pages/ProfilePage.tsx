@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom'
 
 function getStoredUser() {
@@ -161,6 +162,8 @@ export default function ProfilePage() {
   )
 }
 =======
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { updateProfile } from 'firebase/auth'
@@ -338,4 +341,7 @@ export default function ProfilePage() {
     </AppShell>
   )
 }
+<<<<<<< HEAD
 >>>>>>> origin/Shubh
+=======
+>>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
