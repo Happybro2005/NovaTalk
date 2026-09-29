@@ -5,33 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-<<<<<<< HEAD
-<<<<<<< HEAD
     "dev:server": "node server.js",
     "start": "node server.js",
-=======
->>>>>>> origin/Shubh
-=======
-    "dev:server": "node server.js",
-    "start": "node server.js",
->>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
-<<<<<<< HEAD
     "cors": "^2.8.6",
     "express": "^5.2.1",
-=======
     "firebase": "^12.16.0",
->>>>>>> origin/Shubh
-=======
-    "firebase": "^12.16.0",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
->>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.27.0",
     "react": "^19.2.7",

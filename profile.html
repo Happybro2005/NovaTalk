@@ -103,7 +103,7 @@
           </div>
 
           <div class="mt-8 flex flex-wrap items-center gap-3">
-            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3d7eff]">Save changes</button>
+            <button type="button" data-save-profile class="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3d7eff]">Save changes</button>
           </div>
         </section>
       </main>
@@ -112,12 +112,53 @@
 
   <script src="assets/js/main.js"></script>
   <script>
+    function saveProfileData() {
+      const existing = JSON.parse(localStorage.getItem('novatalk-user') || '{}');
+      const displayNameInput = document.querySelector('[data-user-display-name]');
+      const usernameInput = document.querySelector('[data-user-display-username]');
+      const bioInput = document.querySelector('[data-user-bio-field]');
+
+      const name = (displayNameInput?.value || existing.name || 'Your Name').trim() || 'Your Name';
+      const username = (usernameInput?.value || existing.username || '@username').trim() || '@username';
+      const bio = (bioInput?.value || existing.bio || 'Exploring ideas, people, and new conversations across the galaxy.').trim() || 'Exploring ideas, people, and new conversations across the galaxy.';
+
+      const nextProfile = {
+        ...existing,
+        name,
+        username: username.startsWith('@') ? username : `@${username}`,
+        bio,
+      };
+
+      localStorage.setItem('novatalk-user', JSON.stringify(nextProfile));
+      if (typeof window.applyUserProfile === 'function') {
+        window.applyUserProfile();
+      }
+
+      return nextProfile;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const logoutButton = document.querySelector('[data-logout-button]');
       if (logoutButton) {
         logoutButton.addEventListener('click', () => {
           localStorage.removeItem('novatalk-user');
           window.location.href = 'login.html';
+        });
+      }
+
+      const saveButton = document.querySelector('[data-save-profile]');
+      if (saveButton) {
+        const originalLabel = saveButton.textContent;
+
+        saveButton.addEventListener('click', () => {
+          saveProfileData();
+          saveButton.textContent = 'Saved';
+          saveButton.disabled = true;
+
+          setTimeout(() => {
+            saveButton.textContent = originalLabel;
+            saveButton.disabled = false;
+          }, 1200);
         });
       }
     });
