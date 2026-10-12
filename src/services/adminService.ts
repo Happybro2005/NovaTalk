@@ -24,17 +24,17 @@ export const adminService = {
   },
 
   async getStats() {
-    const [usersSnap, reportsSnap, communitiesSnap] = await Promise.all([
+    const [usersSnap, reportsSnap, groupsSnap] = await Promise.all([
       getDocs(collection(db, 'users')),
       getDocs(query(collection(db, 'reports'), where('status', '==', 'pending'))),
-      getDocs(collection(db, 'communities')),
+      getDocs(collection(db, 'groups')),
     ])
     const online = usersSnap.docs.filter((d) => (d.data() as User).online).length
     return {
       totalUsers: usersSnap.size,
       onlineUsers: online,
       pendingReports: reportsSnap.size,
-      communities: communitiesSnap.size,
+      communities: groupsSnap.size,
     }
   },
 }

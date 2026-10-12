@@ -1,120 +1,130 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Radar, Send } from 'lucide-react'
+import { Loader2, Radar, Send, SkipForward, UserPlus } from 'lucide-react'
 import { collection, doc, getDoc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore'
 import AppShell from '../components/AppShell'
 import { Badge, Button, GlassCard, Input, Eyebrow } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { matchmakingService } from '../services/matchmakingService'
 import { chatService } from '../services/chatService'
+import { friendService } from '../services/friendService'
 import { db } from '../firebase'
-
-const departments = ['Computer Science', 'Information Technology', 'Electronics', 'Mechanical', 'Civil', 'Business']
-const semesters = ['1', '2', '3', '4', '5', '6', '7', '8']
-const subjects = ['DSA', 'DBMS', 'Operating Systems', 'Networks', 'Machine Learning', 'Calculus']
-const interests = ['AI', 'Web Development', 'Mobile Apps', 'Design', 'Research', 'Open Source', 'Robotics', 'Data Science', 'Hackathons', 'Music', 'Sports', 'Reading']
-const skills = ['Coding', 'Presentation', 'Research', 'Design', 'Mentoring', 'Debugging']
-
-type MatchProfile = {
-  department: string
-  semester: string
-  subjects: string[]
-  interests: string[]
-  skills: string[]
-}
-
-const emptyMatchProfile: MatchProfile = {
-  department: '',
-  semester: '',
-  subjects: [],
-  interests: [],
-  skills: [],
-}
+import type { User } from '../types/models'
 
 export default function StrangerChatPage() {
   const { currentUser } = useAuth()
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState<{ id: string; text: string }[]>([])
-  const [profile, setProfile] = useState<MatchProfile>(emptyMatchProfile)
-  const [showProfilePrompt, setShowProfilePrompt] = useState(false)
-  const [savingProfile, setSavingProfile] = useState(false)
-  const [profileError, setProfileError] = useState('')
+  const [messages, setMessages] = useState<{ id: string; senderId: string; text: string; createdAt: number; edited?: boolean; deleted?: boolean; pinned?: boolean; highlighted?: boolean }[]>([])
+  const [messageMenu, setMessageMenu] = useState<{ id: string; x: number; y: number } | null>(null)
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
+  const [matchError, setMatchError] = useState('')
+  const [actionError, setActionError] = useState('')
+  const [queueNotice, setQueueNotice] = useState('')
+  const [matchedUserId, setMatchedUserId] = useState<string | null>(null)
+  const [matchedUser, setMatchedUser] = useState<User | null>(null)
+  const [friendRequestSent, setFriendRequestSent] = useState(false)
+  const [discoveryEnabled, setDiscoveryEnabled] = useState<boolean | null>(null)
+  const [readReceiptsEnabled, setReadReceiptsEnabled] = useState<boolean | null>(null)
+  const [matchedUserReadAt, setMatchedUserReadAt] = useState(0)
+  const isSearchingRef = useRef(false)
+  const skippingRef = useRef(false)
+  const activeConversationIdRef = useRef<string | null>(null)
+  const skipMatchedFriendRef = useRef<() => void>(() => undefined)
+  const skipCooldownsRef = useRef(new Map<string, ReturnType<typeof window.setTimeout>>())
+  const excludedUsersRef = useRef<Record<string, number>>({})
+  const handledSkipEventsRef = useRef(new Set<string>())
+  const ignoredConversationIdsRef = useRef(new Set<string>())
+  const lastReadMessageIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!currentUser) return
+    return onSnapshot(doc(db, 'users', currentUser.uid, 'settings', 'default'), (snapshot) => {
+      const settings = snapshot.data() as { privacy?: { readReceipts?: boolean } } | undefined
+      setReadReceiptsEnabled(settings?.privacy?.readReceipts !== false)
+    }, () => setReadReceiptsEnabled(false))
+  }, [currentUser?.uid])
+
+  useEffect(() => {
+    if (!currentUser) return
+    return onSnapshot(doc(db, 'users', currentUser.uid, 'settings', 'default'), (snapshot) => {
+      const settings = snapshot.data() as { privacy?: { studyMatch?: boolean } } | undefined
+      setDiscoveryEnabled(settings?.privacy?.studyMatch !== false)
+    }, (error) => {
+      setMatchError(error.message || 'Unable to load friend discovery settings.')
+      setDiscoveryEnabled(false)
+    })
+  }, [currentUser?.uid])
 
   useEffect(() => {
     const userId = currentUser?.uid ?? ''
-    if (!userId) return
+    if (!userId || discoveryEnabled === null) return
+
+    if (!discoveryEnabled) {
+      isSearchingRef.current = false
+      void matchmakingService.leaveStudyQueue(userId)
+      if (!activeConversationIdRef.current) {
+        setMatchError('Friend discovery is disabled in Settings. Enable it to find new friends.')
+        setLoading(false)
+      }
+      return
+    }
+    if (activeConversationIdRef.current) return
 
     let active = true
     let intervalId: ReturnType<typeof window.setInterval> | null = null
+    let heartbeatId: ReturnType<typeof window.setInterval> | null = null
     const matchStartedAt = Date.now()
-
-    async function loadMatchProfile() {
-      const userSnapshot = await getDoc(doc(db, 'users', userId))
-      const userData = userSnapshot.data() as Partial<MatchProfile> | undefined
-      const nextProfile: MatchProfile = {
-        department: userData?.department && userData.department !== 'Undeclared' ? userData.department : '',
-        semester: userData?.semester ?? '',
-        subjects: userData?.subjects ?? [],
-        interests: userData?.interests ?? [],
-        skills: userData?.skills ?? [],
-      }
-
-      if (!active) return false
-      setProfile(nextProfile)
-      const complete = Boolean(
-        nextProfile.department &&
-        nextProfile.semester &&
-        nextProfile.subjects.length > 0 &&
-        nextProfile.interests.length > 0 &&
-        nextProfile.skills.length > 0,
-      )
-      setShowProfilePrompt(!complete)
-      setLoading(!complete)
-      return complete
-    }
+    isSearchingRef.current = false
+    setMatchError('')
 
     async function startMatchmaking() {
-      const complete = await loadMatchProfile()
-      if (!complete || !active) return
+      if (!active) return
 
       setLoading(true)
+      isSearchingRef.current = true
       await updateDoc(doc(db, 'users', userId), {
         lastOpenedStudyMatchAt: serverTimestamp(),
       })
       await matchmakingService.joinStudyQueue(userId)
 
+      heartbeatId = window.setInterval(() => {
+        if (isSearchingRef.current) void matchmakingService.refreshQueue(userId)
+      }, 20_000)
+
       intervalId = window.setInterval(async () => {
-        const matchId = await matchmakingService.findMatch(userId)
-        if (matchId && active) {
+        if (!isSearchingRef.current) return
+        const now = Date.now()
+        const excludedUserIds = Object.entries(excludedUsersRef.current)
+          .filter(([, skipUntil]) => skipUntil > now)
+          .map(([excludedUserId]) => excludedUserId)
+        const matchId = await matchmakingService.findMatch(userId, excludedUserIds)
+        if (matchId && active && isSearchingRef.current) {
+          isSearchingRef.current = false
+          activeConversationIdRef.current = matchId
           setConversationId(matchId)
           setLoading(false)
-          if (intervalId) {
-            clearInterval(intervalId)
-            intervalId = null
-          }
         }
       }, 2500)
 
       const conversationQuery = query(
         collection(db, 'conversations'),
-        where('type', '==', 'study'),
         where('participantIds', 'array-contains', userId)
       )
 
       return onSnapshot(conversationQuery, (snap) => {
         const matchedConversation = snap.docs.find((conversationDoc) => {
-          const data = conversationDoc.data() as { createdAt?: { toMillis?: () => number } }
+          const data = conversationDoc.data() as { type?: string; createdAt?: { toMillis?: () => number } }
+          if (data.type !== 'study') return false
+          if (ignoredConversationIdsRef.current.has(conversationDoc.id)) return false
           return (data.createdAt?.toMillis?.() ?? 0) >= matchStartedAt
         })
         if (matchedConversation && active) {
+          isSearchingRef.current = false
+          activeConversationIdRef.current = matchedConversation.id
           setConversationId(matchedConversation.id)
           setLoading(false)
-          if (intervalId) {
-            clearInterval(intervalId)
-            intervalId = null
-          }
         }
       })
     }
@@ -129,69 +139,275 @@ export default function StrangerChatPage() {
       if (intervalId) {
         clearInterval(intervalId)
       }
+      if (heartbeatId) clearInterval(heartbeatId)
       void matchmakingService.leaveStudyQueue(userId)
       unsubscribeConversation?.()
     }
+  }, [currentUser?.uid, discoveryEnabled])
+
+  useEffect(() => () => {
+    skipCooldownsRef.current.forEach((timer) => window.clearTimeout(timer))
+    skipCooldownsRef.current.clear()
+  }, [])
+
+  useEffect(() => {
+    activeConversationIdRef.current = conversationId
+  }, [conversationId])
+
+  useEffect(() => {
+    const userId = currentUser?.uid
+    return () => {
+      const activeConversationId = activeConversationIdRef.current
+      if (userId && activeConversationId) {
+        void matchmakingService.skipMatch(activeConversationId, userId).catch(() => undefined)
+      }
+    }
   }, [currentUser?.uid])
 
-  function toggleProfileValue(field: 'subjects' | 'interests' | 'skills', value: string) {
-    setProfile((current) => ({
-      ...current,
-      [field]: current[field].includes(value)
-        ? current[field].filter((item) => item !== value)
-        : [...current[field], value],
-    }))
+  useEffect(() => {
+    if (!conversationId || !currentUser) return
+    let active = true
+    void getDoc(doc(db, 'conversations', conversationId)).then((snapshot) => {
+      if (!active || !snapshot.exists()) return
+      const participantIds = (snapshot.data().participantIds as string[] | undefined) ?? []
+      const otherUserId = participantIds.find((participantId) => participantId !== currentUser.uid) ?? null
+      setMatchedUserId(otherUserId)
+      setMatchedUser(null)
+      setMatchedUserReadAt(0)
+      if (otherUserId) {
+        void friendService.getUser(otherUserId).then((profile) => {
+          if (active) setMatchedUser(profile)
+        })
+      }
+      setFriendRequestSent(false)
+      setActionError('')
+      setQueueNotice('')
+    })
+    return () => { active = false }
+  }, [conversationId, currentUser])
+
+  useEffect(() => {
+    if (!conversationId || !matchedUserId) return
+    const handleLeaveTab = () => {
+      if (document.visibilityState === 'hidden') skipMatchedFriendRef.current()
+    }
+    document.addEventListener('visibilitychange', handleLeaveTab)
+    window.addEventListener('pagehide', handleLeaveTab)
+    return () => {
+      document.removeEventListener('visibilitychange', handleLeaveTab)
+      window.removeEventListener('pagehide', handleLeaveTab)
+    }
+  }, [conversationId, matchedUserId])
+
+  useEffect(() => {
+    if (!conversationId || !currentUser) return
+    let active = true
+    const conversationRef = doc(db, 'conversations', conversationId)
+    const handleSkipUpdate = (data: { skippedBy?: string; skipEventId?: string; skipUntil?: number } | undefined) => {
+      if (!active || !data) return
+      if (!data.skippedBy || !data.skipEventId || data.skippedBy === currentUser.uid || handledSkipEventsRef.current.has(data.skipEventId)) return
+      handledSkipEventsRef.current.add(data.skipEventId)
+      ignoredConversationIdsRef.current.add(conversationId)
+      activeConversationIdRef.current = null
+      temporarilyExclude(data.skippedBy, data.skipUntil ?? 0)
+      isSearchingRef.current = true
+      setConversationId(null)
+      setMatchedUserId(null)
+      setMatchedUser(null)
+      setFriendRequestSent(false)
+      setMessages([])
+      setMessage('')
+      setLoading(true)
+      setActionError('')
+      setQueueNotice('Finding you someone new...')
+      if (!discoveryEnabled) {
+        isSearchingRef.current = false
+        setMatchError('Friend discovery is disabled in Settings. Enable it to continue matching.')
+        setLoading(false)
+        return
+      }
+      void matchmakingService.joinStudyQueue(currentUser.uid).catch((error: unknown) => {
+        setActionError(error instanceof Error ? error.message : 'Unable to rejoin the friend queue.')
+      })
+    }
+    const unsubscribe = onSnapshot(conversationRef, (snapshot) => {
+      handleSkipUpdate(snapshot.data() as { skippedBy?: string; skipEventId?: string; skipUntil?: number } | undefined)
+    }, (error) => {
+      setActionError(error.message || 'Unable to listen for match updates.')
+    })
+    const checkForSkip = () => {
+      void getDoc(conversationRef).then((snapshot) => {
+        handleSkipUpdate(snapshot.data() as { skippedBy?: string; skipEventId?: string; skipUntil?: number } | undefined)
+      }).catch((error: unknown) => {
+        if (active) setActionError(error instanceof Error ? error.message : 'Unable to refresh this conversation.')
+      })
+    }
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') checkForSkip()
+    }
+    window.addEventListener('focus', checkForSkip)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    const skipCheckInterval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') checkForSkip()
+    }, 2000)
+    return () => {
+      active = false
+      unsubscribe()
+      window.clearInterval(skipCheckInterval)
+      window.removeEventListener('focus', checkForSkip)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [conversationId, currentUser, discoveryEnabled])
+
+  function temporarilyExclude(userId: string, skipUntil: number) {
+    const remainingMs = skipUntil - Date.now()
+    if (remainingMs <= 0) return
+    const previousTimer = skipCooldownsRef.current.get(userId)
+    if (previousTimer) window.clearTimeout(previousTimer)
+    excludedUsersRef.current[userId] = skipUntil
+    const timer = window.setTimeout(() => {
+      delete excludedUsersRef.current[userId]
+      skipCooldownsRef.current.delete(userId)
+    }, remainingMs)
+    skipCooldownsRef.current.set(userId, timer)
   }
 
-  async function saveMatchProfile(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!currentUser) return
-    if (!profile.department || !profile.semester || !profile.subjects.length || !profile.interests.length || !profile.skills.length) {
-      setProfileError('Please select a department, semester, subject, interest, and skill.')
-      return
-    }
+  useEffect(() => {
+    if (!conversationId || !currentUser || readReceiptsEnabled === null) return
+    let active = true
+    lastReadMessageIdRef.current = null
+    const unsubscribe = chatService.listenToMessages(conversationId, (items) => {
+      if (!active) return
+      setMessages(items)
+      const latestIncoming = [...items].reverse().find((item) => item.senderId !== currentUser.uid)
+      if (readReceiptsEnabled && latestIncoming && lastReadMessageIdRef.current !== latestIncoming.id) {
+        lastReadMessageIdRef.current = latestIncoming.id
+        void chatService.markConversationRead(conversationId, currentUser.uid).catch((readError: unknown) => {
+          console.error('Unable to mark friend-match message as read', readError)
+        })
+      }
+    })
 
-    setSavingProfile(true)
-    setProfileError('')
-    try {
-      await updateDoc(doc(db, 'users', currentUser.uid), profile)
-      setShowProfilePrompt(false)
-      window.location.reload()
-    } catch (error) {
-      setProfileError(error instanceof Error ? error.message : 'Unable to save your matching profile.')
-    } finally {
-      setSavingProfile(false)
+    return () => {
+      active = false
+      unsubscribe()
     }
-  }
+  }, [conversationId, currentUser?.uid, readReceiptsEnabled])
+
+  useEffect(() => {
+    if (!conversationId || !matchedUserId || readReceiptsEnabled === false) return
+    return chatService.listenToParticipantRead(conversationId, matchedUserId, setMatchedUserReadAt)
+  }, [conversationId, matchedUserId, readReceiptsEnabled])
 
   async function sendMessage() {
     if (!currentUser || !conversationId || !message.trim()) return
-    await chatService.sendMessage(conversationId, currentUser.uid, message.trim())
-    setMessages((current) => [...current, { id: `${Date.now()}`, text: message.trim() }])
+    if (editingMessageId) {
+      await chatService.editMessage(conversationId, editingMessageId, message)
+      setEditingMessageId(null)
+    } else {
+      await chatService.sendMessage(conversationId, currentUser.uid, message.trim())
+    }
     setMessage('')
   }
 
+  async function addMatchedFriend() {
+    if (!currentUser || !matchedUserId) return
+    try {
+      setActionError('')
+      await friendService.sendRequest(currentUser.uid, matchedUserId)
+      setFriendRequestSent(true)
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to send friend request.')
+    }
+  }
+
+  async function skipMatchedFriend() {
+    if (!currentUser || !conversationId || !matchedUserId || skippingRef.current) return
+    skippingRef.current = true
+    activeConversationIdRef.current = null
+    try {
+      setActionError('')
+      const { skipUntil } = await matchmakingService.skipMatch(conversationId, currentUser.uid)
+      ignoredConversationIdsRef.current.add(conversationId)
+      activeConversationIdRef.current = null
+      temporarilyExclude(matchedUserId, skipUntil)
+      isSearchingRef.current = true
+      setConversationId(null)
+      setMatchedUserId(null)
+      setMatchedUser(null)
+      setFriendRequestSent(false)
+      setMessages([])
+      setMessage('')
+      setLoading(true)
+      setQueueNotice('Finding you someone new...')
+      if (discoveryEnabled) {
+        await matchmakingService.joinStudyQueue(currentUser.uid)
+      } else {
+        setMatchError('Friend discovery is disabled in Settings. Enable it to continue matching.')
+        setLoading(false)
+      }
+    } catch (error) {
+      activeConversationIdRef.current = conversationId
+      setActionError(error instanceof Error ? error.message : 'Unable to skip this person.')
+    } finally {
+      skippingRef.current = false
+    }
+  }
+
+  skipMatchedFriendRef.current = () => { void skipMatchedFriend() }
+
+  async function handleMessageAction(action: 'edit' | 'delete' | 'pinned' | 'highlighted') {
+    if (!conversationId || !messageMenu || !currentUser) return
+    const selectedMessage = messages.find((item) => item.id === messageMenu.id)
+    if (!selectedMessage) return
+    try {
+      if (action === 'edit') {
+        setEditingMessageId(selectedMessage.id)
+        setMessage(selectedMessage.text)
+      } else if (action === 'delete') {
+        if (!window.confirm('Delete this message for everyone?')) return
+        await chatService.deleteMessage(conversationId, selectedMessage.id)
+      } else {
+        await chatService.toggleMessageFlag(conversationId, selectedMessage.id, action, !selectedMessage[action])
+      }
+    } finally {
+      setMessageMenu(null)
+    }
+  }
+
+  const outgoingMessages = messages.filter((item) => item.senderId === currentUser?.uid)
+  const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]
+
   return (
     <AppShell>
-      <Eyebrow>STUDY MATCH</Eyebrow>
+      <Eyebrow>NEW FRIENDS</Eyebrow>
       <div className="mt-2 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>Find a study partner, live.</h1>
-          <p className="mt-1 text-[#CBD5E1]">We are matching you with students who share your department, semester, and subjects.</p>
+          <h1 className="text-3xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>Meet a new friend, live.</h1>
+          <p className="mt-1 text-[#CBD5E1]">Meet someone new, share a moment, and see where the conversation goes.</p>
         </div>
         <Badge tone={loading ? 'warning' : 'success'}>{loading ? 'Finding partner' : 'Matched'}</Badge>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <GlassCard strong className="p-6">
-          {loading ? (
+      {actionError && <p role="alert" className="mt-4 text-sm text-red-300">{actionError}</p>}
+      {queueNotice && loading && <p role="status" className="mt-4 text-sm text-[#CBD5E1]">{queueNotice}</p>}
+
+      <div className="mt-8 grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+        <GlassCard strong className="min-h-[420px] p-6">
+          {matchError ? (
+            <div className="flex min-h-[420px] flex-col items-center justify-center text-center">
+              <h2 className="text-xl font-semibold text-white">Friend discovery is off</h2>
+              <p className="mt-2 max-w-md text-sm text-[#CBD5E1]">{matchError}</p>
+              <Link to="/settings" className="mt-6"><Button variant="secondary">Open Settings</Button></Link>
+            </div>
+          ) : loading ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center text-center">
               <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-[#4F8CFF]/30 bg-[#4F8CFF]/10 text-[#4F8CFF]">
                 <Radar size={42} className="animate-pulse" />
                 <span className="absolute inset-0 animate-ping rounded-full border border-[#4F8CFF]/30" />
               </div>
-              <h2 className="mt-6 text-xl font-semibold text-white">Finding a study partner...</h2>
-              <p className="mt-2 max-w-md text-sm text-[#CBD5E1]">A live student collaboration chat will open as soon as the best available match is found.</p>
+              <h2 className="mt-6 text-xl font-semibold text-white">Finding a new friend...</h2>
+              <p className="mt-2 max-w-md text-sm text-[#CBD5E1]">A live conversation will open as soon as the best available friend match is found.</p>
               <Button className="mt-6" variant="secondary" disabled>
                 <Loader2 size={16} className="animate-spin" /> Waiting in queue
               </Button>
@@ -210,81 +426,75 @@ export default function StrangerChatPage() {
                   <p className="text-sm text-[#CBD5E1]">No messages yet. Say hello.</p>
                 ) : (
                   messages.map((msg) => (
-                    <div key={msg.id} className="rounded-xl bg-white/[0.05] p-3 text-sm text-white">
-                      {msg.text}
+                      <div key={msg.id} className={`flex w-full ${msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
+                        <div onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: msg.id, x: event.clientX, y: event.clientY }) }} className={`w-fit max-w-[50%] rounded-xl bg-white/[0.05] p-3 text-sm text-white ${msg.highlighted ? 'ring-2 ring-[#F59E0B]' : ''}`}>
+                          {msg.text} {msg.edited && !msg.deleted && <span className="text-xs text-[#CBD5E1]">(edited)</span>}
+                          {msg.id === latestOutgoingMessage?.id && matchedUserReadAt >= msg.createdAt && msg.createdAt > 0 && <div className="mt-1 text-right text-[10px] text-[#BFDBFE]/70">Seen</div>}
+                          {msg.pinned && <div className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-[#FCD34D]">Pinned</div>}
+                        </div>
                     </div>
                   ))
                 )}
               </div>
               <div className="mt-4 flex gap-3">
                 <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Write a message..." />
-                <Button type="button" onClick={sendMessage}><Send size={16} /> Send</Button>
+                {editingMessageId && <Button type="button" variant="ghost" onClick={() => { setEditingMessageId(null); setMessage('') }}>Cancel</Button>}
+                <Button type="button" onClick={sendMessage}><Send size={16} /> {editingMessageId ? 'Save' : 'Send'}</Button>
               </div>
             </div>
           )}
         </GlassCard>
 
-        <GlassCard className="p-6">
-          <h2 className="font-semibold text-white">How it works</h2>
-          <div className="mt-4 space-y-4 text-sm text-[#CBD5E1]">
-            <p>1. You join the study queue from your authenticated account.</p>
-            <p>2. The service searches for another waiting student and creates a temporary study conversation.</p>
-            <p>3. Once matched, this panel becomes the live chat surface.</p>
-          </div>
-        </GlassCard>
+        {conversationId && matchedUserId ? (
+          <GlassCard className="flex min-h-[420px] flex-col p-6">
+            <div>
+              <Eyebrow>CURRENT MATCH</Eyebrow>
+              <div className="mt-5 flex items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-lg font-semibold text-white">
+                  {matchedUser?.novaName?.[0]?.toUpperCase() || '?'}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-semibold text-white">{matchedUser?.novaName || 'NovaTalk member'}</h2>
+                  {matchedUser?.username && <p className="truncate text-sm text-[#CBD5E1]">@{matchedUser.username}</p>}
+                </div>
+              </div>
+              <div className="mt-5 flex items-center gap-2 text-sm text-emerald-300"><span className="h-2 w-2 rounded-full bg-emerald-400" />Connected</div>
+            </div>
+            <div className="mt-auto grid gap-3 pt-8">
+              <Button variant="secondary" onClick={() => void addMatchedFriend()} disabled={friendRequestSent}>
+                <UserPlus size={16} /> {friendRequestSent ? 'Requested' : 'Add friend'}
+              </Button>
+              <Button variant="ghost" onClick={() => void skipMatchedFriend()}><SkipForward size={16} /> Skip this person</Button>
+            </div>
+          </GlassCard>
+        ) : (
+          <GlassCard className="flex min-h-[420px] flex-col items-center justify-center p-6 text-center">
+            {matchError ? <>
+              <h2 className="text-lg font-semibold text-white">Friend discovery is off</h2>
+              <p className="mt-2 max-w-xs text-sm text-[#CBD5E1]">Enable friend discovery in Settings to start matching.</p>
+              <Link to="/settings" className="mt-5"><Button variant="secondary">Open Settings</Button></Link>
+            </> : <>
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-[#4F8CFF]/30 bg-[#4F8CFF]/10 text-[#4F8CFF]">
+                <Radar size={32} className="animate-pulse" />
+                <span className="absolute inset-0 animate-ping rounded-full border border-[#4F8CFF]/20" />
+              </div>
+              <h2 className="mt-6 text-lg font-semibold text-white">Looking for a match</h2>
+              <p className="mt-2 max-w-xs text-sm text-[#CBD5E1]">Your next conversation will appear here when someone is found.</p>
+              <Badge className="mt-5" tone="warning">Queue active</Badge>
+            </>}
+          </GlassCard>
+        )}
       </div>
 
-      {showProfilePrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4" role="dialog" aria-modal="true" aria-labelledby="match-profile-title">
-          <GlassCard strong className="my-8 w-full max-w-2xl p-6">
-            <h2 id="match-profile-title" className="text-xl font-semibold text-white">Complete your study profile</h2>
-            <p className="mt-2 text-sm text-[#CBD5E1]">We need these details to find a relevant real student. Your profile will be saved before matchmaking starts.</p>
-            {profileError && <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{profileError}</p>}
-            <form className="mt-6 space-y-5" onSubmit={saveMatchProfile}>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="text-sm text-[#CBD5E1]">
-                  Department
-                  <select value={profile.department} onChange={(event) => setProfile((current) => ({ ...current, department: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-white">
-                    <option value="" className="bg-[#0F172A]">Select department</option>
-                    {departments.map((item) => <option key={item} className="bg-[#0F172A]">{item}</option>)}
-                  </select>
-                </label>
-                <label className="text-sm text-[#CBD5E1]">
-                  Semester
-                  <select value={profile.semester} onChange={(event) => setProfile((current) => ({ ...current, semester: event.target.value }))} className="mt-1.5 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-white">
-                    <option value="" className="bg-[#0F172A]">Select semester</option>
-                    {semesters.map((item) => <option key={item} className="bg-[#0F172A]">{item}</option>)}
-                  </select>
-                </label>
-              </div>
+      {messageMenu && <div className="fixed z-[70] w-48 rounded-xl border border-white/10 bg-[#111827] p-1.5 shadow-2xl shadow-black/40" style={{ left: Math.min(messageMenu.x, window.innerWidth - 208), top: Math.min(messageMenu.y, window.innerHeight - 220) }} onMouseLeave={() => setMessageMenu(null)}>
+        {(() => { const selectedMessage = messages.find((item) => item.id === messageMenu.id); if (!selectedMessage) return null; const isMine = selectedMessage.senderId === currentUser?.uid; return <>
+          {isMine && !selectedMessage.deleted && <button type="button" onClick={() => void handleMessageAction('edit')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">Edit</button>}
+          {isMine && !selectedMessage.deleted && <button type="button" onClick={() => void handleMessageAction('delete')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#FCA5A5] hover:bg-white/10">Delete</button>}
+          <button type="button" onClick={() => void handleMessageAction('pinned')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.pinned ? 'Unpin' : 'Pin'}</button>
+          <button type="button" onClick={() => void handleMessageAction('highlighted')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.highlighted ? 'Remove highlight' : 'Highlight'}</button>
+        </> })()}
+      </div>}
 
-              {([
-                ['subjects', 'Subjects', subjects],
-                ['interests', 'Interests', interests],
-                ['skills', 'Skills', skills],
-              ] as const).map(([field, label, options]) => (
-                <fieldset key={field}>
-                  <legend className="text-sm font-medium text-[#CBD5E1]">{label} <span className="text-xs text-[#CBD5E1]/60">(select at least one)</span></legend>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {options.map((item) => {
-                      const selected = profile[field].includes(item)
-                      return (
-                        <button key={item} type="button" onClick={() => toggleProfileValue(field, item)} className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${selected ? 'border-[#4F8CFF]/60 bg-[#4F8CFF]/20 text-white' : 'border-white/10 bg-white/[0.04] text-[#CBD5E1] hover:bg-white/[0.08]'}`}>
-                          {item}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </fieldset>
-              ))}
-
-              <Button type="submit" className="w-full" disabled={savingProfile}>
-                {savingProfile ? 'Saving profile...' : 'Save profile and find partner'}
-              </Button>
-            </form>
-          </GlassCard>
-        </div>
-      )}
     </AppShell>
   )
 }

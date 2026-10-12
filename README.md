@@ -2,7 +2,9 @@
 
 A production-ready, real-time social communication platform featuring anonymous stranger chat, friend networking, communities, live messaging, and a Firebase-powered admin control center — all built on React + Vite and Firebase.
 
-This repository currently contains the **Frontend (Design Pass 1)**: a cosmic-themed frontend built with React + TypeScript + Tailwind v4 + Framer Motion + Lucide icons + React Router. No backend/Firebase logic is integrated yet — placeholder data only.
+This repository contains the working Firebase-backed social app, including friend flows, groups, real-time chat, profile/NovaName handling, and admin-safe Firestore logic.
+
+For architecture, integration notes, and guardrails for future AI/maintainer changes, see [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md).
 
 ## Run it locally
 

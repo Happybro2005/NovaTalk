@@ -3,6 +3,8 @@ import { Timestamp } from 'firebase/firestore'
 export interface User {
   uid: string
   username: string
+  novaName: string
+  novaNameChangedAt: Timestamp
   email: string
   displayName: string
   avatarUrl: string
@@ -42,6 +44,12 @@ export interface UserSettings {
 export interface Conversation {
   id: string
   type: 'dm' | 'group' | 'study'
+  messageRequestStatus?: 'pending' | 'accepted' | 'declined'
+  messageRequestFrom?: string
+  messageRequestTo?: string
+  skippedBy?: string
+  skipEventId?: string
+  skipUntil?: number
   createdBy: string | null
   name: string | null
   avatarUrl: string | null
@@ -52,6 +60,7 @@ export interface Conversation {
     timestamp: Timestamp
   } | null
   participantIds: string[]
+  groupId?: string
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -69,12 +78,15 @@ export interface ConversationParticipant {
 export interface Message {
   id: string
   senderId: string
+  senderNovaName?: string
   ciphertext: string
   messageType: 'text' | 'image' | 'voice' | 'file'
   encryptedKey?: Record<string, string>
   replyTo: string | null
   editedAt: Timestamp | null
   deletedForEveryone: boolean
+  pinned?: boolean
+  highlighted?: boolean
   disappearingTimer: number | null
   createdAt: Timestamp
 }
@@ -133,6 +145,30 @@ export interface StudyGroup {
   memberIds: string[]
   memberCount: number
   createdAt: Timestamp
+}
+
+export interface Group {
+  id: string
+  name: string
+  description: string
+  topic: string
+  createdBy: string
+  adminIds: string[]
+  memberIds: string[]
+  memberCount: number
+  createdAt: Timestamp
+  conversationId: string
+}
+
+export interface GroupRequest {
+  id: string
+  groupId: string
+  groupName: string
+  senderId: string
+  receiverId: string
+  status: 'pending' | 'accepted' | 'rejected'
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 export interface Project {

@@ -1,226 +1,108 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { motion } from 'framer-motion'
-import {
-  Users,
-  Activity,
-  Compass,
-  MessageSquare,
-  Flag,
-  LifeBuoy,
-  LayoutGrid,
-  BarChart3,
-  ScrollText,
-  Settings,
-  Database,
-  LogOut,
-} from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import AmbientBackdrop from '../../components/AmbientBackdrop'
-import Logo from '../../components/Logo'
-import { Badge, GlassCard, Eyebrow } from '../../components/ui'
-
-const navItems = [
-  { label: 'Overview', icon: LayoutGrid, to: '/admin/dashboard' },
-  { label: 'Users', icon: Users, to: '/admin/users' },
-  { label: 'Reports', icon: Flag, to: '/admin/reports' },
-  { label: 'Communities', icon: Compass, to: '/admin/communities' },
-  { label: 'Support', icon: LifeBuoy, to: '/admin/support' },
-  { label: 'Analytics', icon: BarChart3, to: '/admin/analytics' },
-  { label: 'Audit logs', icon: ScrollText, to: '/admin/audit-logs' },
-  { label: 'Database health', icon: Database, to: '/admin/database' },
-  { label: 'Settings', icon: Settings, to: '/admin/settings' },
-]
-
-const widgets = [
-  { label: 'Total users', value: '184,203', delta: '+2.4%', icon: Users, tone: 'primary' as const },
-  { label: 'Online now', value: '12,847', delta: '+8.1%', icon: Activity, tone: 'success' as const },
-  { label: 'Communities', value: '4,932', delta: '+1.2%', icon: Compass, tone: 'primary' as const },
-  { label: 'Messages / day', value: '2.1M', delta: '+5.6%', icon: MessageSquare, tone: 'primary' as const },
-  { label: 'Open reports', value: '38', delta: '-12%', icon: Flag, tone: 'warning' as const },
-  { label: 'Support tickets', value: '112', delta: '-4%', icon: LifeBuoy, tone: 'danger' as const },
-]
-
-const recentUsers = [
-  { name: 'Sana P.', role: 'Member', joined: 'Jul 26, 2026', status: 'active' },
-  { name: 'Leo B.', role: 'Member', joined: 'Jul 26, 2026', status: 'active' },
-  { name: 'Iris W.', role: 'Moderator', joined: 'Jul 25, 2026', status: 'active' },
-  { name: 'Tom H.', role: 'Member', joined: 'Jul 25, 2026', status: 'suspended' },
-]
-
-const recentReports = [
-  { user: 'Anonymous report #4471', severity: 'high', reason: 'Harassment in stranger chat' },
-  { user: 'Anonymous report #4470', severity: 'medium', reason: 'Spam links in community post' },
-  { user: 'Anonymous report #4468', severity: 'low', reason: 'Inappropriate display name' },
-]
-
-export default function AdminDashboard() {
-  const location = useLocation()
-  const navigate = useNavigate()
-
-  return (
-    <div className="relative min-h-screen">
-      <AmbientBackdrop variant="aurora" />
-      <div className="flex">
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#050816]/60 backdrop-blur-xl lg:flex">
-          <div className="px-6 py-6">
-            <Logo />
-            <Eyebrow>MISSION CONTROL</Eyebrow>
-          </div>
-          <nav className="flex-1 space-y-1 px-3">
-            {navItems.map((item) => {
-              const active = location.pathname === item.to
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
-                    active ? 'glass text-white glow-accent' : 'text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white'
-                  }`}
-                >
-                  <item.icon size={18} />
-                  {item.label}
-                </Link>
-              )
-            })}
-          </nav>
-          <div className="border-t border-white/[0.06] p-4">
-            <button
-              onClick={() => navigate('/admin')}
-              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white"
-            >
-              <LogOut size={17} /> Lock console
-            </button>
-          </div>
-        </aside>
-
-        <div className="min-h-screen flex-1 px-4 pb-16 pt-6 sm:px-6">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <Eyebrow>OVERVIEW</Eyebrow>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white" style={{ fontFamily: 'var(--font-display)' }}>
-              Mission Control
-            </h1>
-            <p className="mt-1.5 text-[#CBD5E1]">Platform-wide health, growth, and moderation at a glance.</p>
-          </motion.div>
-
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {widgets.map((w) => (
-              <GlassCard key={w.label} className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-[#4F8CFF]/15 text-[#4F8CFF]`}>
-                    <w.icon size={19} />
-                  </div>
-                  <Badge tone={w.delta.startsWith('-') ? 'success' : 'success'}>{w.delta}</Badge>
-                </div>
-                <div className="mt-4 text-2xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>
-                  {w.value}
-                </div>
-                <div className="mt-1 text-sm text-[#CBD5E1]/70">{w.label}</div>
-              </GlassCard>
-            ))}
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
-            {/* Growth chart placeholder */}
-            <GlassCard className="p-5 lg:col-span-2">
-              <h2 className="mb-4 font-semibold text-white">User growth — last 30 days</h2>
-              <svg viewBox="0 0 400 140" className="w-full">
-                <defs>
-                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#4F8CFF" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#4F8CFF" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M0,110 C30,100 60,60 90,70 C120,80 150,40 180,45 C210,50 240,30 270,35 C300,40 330,20 360,25 L400,10 L400,140 L0,140 Z"
-                  fill="url(#areaGrad)"
-                />
-                <path
-                  d="M0,110 C30,100 60,60 90,70 C120,80 150,40 180,45 C210,50 240,30 270,35 C300,40 330,20 360,25 L400,10"
-                  fill="none"
-                  stroke="#4F8CFF"
-                  strokeWidth="2.5"
-                />
-              </svg>
-            </GlassCard>
-
-            {/* Recent reports */}
-            <GlassCard className="p-5">
-              <h2 className="mb-4 font-semibold text-white">Recent reports</h2>
-              <div className="space-y-3">
-                {recentReports.map((r) => (
-                  <div key={r.user} className="border-b border-white/[0.06] pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-[#CBD5E1]/60">{r.user}</span>
-                      <Badge tone={r.severity === 'high' ? 'danger' : r.severity === 'medium' ? 'warning' : 'neutral'}>
-                        {r.severity}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 text-sm text-[#CBD5E1]">{r.reason}</p>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
-          </div>
-
-          {/* Recent users table */}
-          <GlassCard className="mt-6 overflow-x-auto p-5">
-            <h2 className="mb-4 font-semibold text-white">Recent users</h2>
-            <table className="w-full min-w-[480px] text-left text-sm">
-              <thead>
-                <tr className="text-xs uppercase tracking-wide text-[#CBD5E1]/50">
-                  <th className="pb-3 font-medium">User</th>
-                  <th className="pb-3 font-medium">Role</th>
-                  <th className="pb-3 font-medium">Joined</th>
-                  <th className="pb-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentUsers.map((u) => (
-                  <tr key={u.name} className="border-t border-white/[0.06]">
-                    <td className="py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-xs font-semibold">
-                          {u.name[0]}
-                        </div>
-                        <span className="text-white">{u.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 text-[#CBD5E1]">{u.role}</td>
-                    <td className="py-3 text-[#CBD5E1]">{u.joined}</td>
-                    <td className="py-3">
-                      <Badge tone={u.status === 'active' ? 'success' : 'danger'}>{u.status}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </GlassCard>
-        </div>
-      </div>
-    </div>
-=======
-=======
->>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
-import { Layers3 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Check, Layers3, ShieldAlert, UserRound, UsersRound, X } from 'lucide-react'
 import AppShell from '../../components/AppShell'
-import { Badge, GlassCard } from '../../components/ui'
+import { Badge, Button, GlassCard } from '../../components/ui'
 import { useAuth } from '../../contexts/AuthContext'
+import { adminService } from '../../services/adminService'
+import type { Report, User } from '../../types/models'
+
+type Stats = Awaited<ReturnType<typeof adminService.getStats>>
 
 export default function AdminDashboard() {
   const { currentUser } = useAuth()
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [reports, setReports] = useState<Report[]>([])
+  const [error, setError] = useState('')
+
+  async function loadData() {
+    try {
+      const [nextStats, nextUsers, nextReports] = await Promise.all([
+        adminService.getStats(),
+        adminService.getAllUsers(),
+        adminService.getPendingReports(),
+      ])
+      setStats(nextStats)
+      setUsers(nextUsers)
+      setReports(nextReports)
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load admin data.')
+    }
+  }
+
+  useEffect(() => {
+    void loadData()
+  }, [])
+
+  async function resolveReport(reportId: string, status: 'resolved' | 'dismissed') {
+    await adminService.resolveReport(reportId, status)
+    setReports((items) => items.filter((item) => item.id !== reportId))
+  }
+
+  async function suspendUser(uid: string) {
+    await adminService.suspendUser(uid)
+    setUsers((items) => items.map((user) => user.uid === uid ? { ...user, accountStatus: 'suspended' } : user))
+  }
+
+  const metrics: { label: string; value: number; icon: typeof UserRound }[] = [
+    { label: 'Users', value: stats?.totalUsers ?? 0, icon: UserRound },
+    { label: 'Online now', value: stats?.onlineUsers ?? 0, icon: UsersRound },
+    { label: 'Pending reports', value: stats?.pendingReports ?? 0, icon: ShieldAlert },
+    { label: 'Groups', value: stats?.communities ?? 0, icon: Layers3 },
+  ]
 
   return (
     <AppShell>
-      <GlassCard className="p-6">
-        <div className="flex items-center gap-3 text-white"><Layers3 size={18} /> Admin</div>
-        <p className="mt-4 text-[#CBD5E1]">Welcome, {currentUser?.displayName}</p>
-        <Badge className="mt-4" tone="neutral">Dashboard ready</Badge>
-      </GlassCard>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="eyebrow">MISSION CONTROL</p>
+          <h1 className="mt-2 text-3xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>Admin dashboard</h1>
+          <p className="mt-1 text-[#CBD5E1]">Live data from your Firebase project, {currentUser?.displayName || 'operator'}.</p>
+        </div>
+        <Badge tone="success">Firebase connected</Badge>
+      </div>
+
+      {error && <p className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{error}</p>}
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(({ label, value, icon: Icon }) => (
+          <GlassCard key={label} className="p-5">
+            <div className="flex items-center justify-between text-[#CBD5E1]"><span className="text-sm">{label}</span><Icon size={18} /></div>
+            <div className="mt-3 text-3xl font-semibold text-white">{value}</div>
+          </GlassCard>
+        ))}
+      </div>
+
+      <div className="mt-8 grid gap-6 xl:grid-cols-2">
+        <GlassCard className="p-5">
+          <h2 className="font-semibold text-white">Pending reports</h2>
+          <div className="mt-4 space-y-3">
+            {reports.length === 0 ? <p className="text-sm text-[#CBD5E1]">No pending reports.</p> : reports.map((report) => (
+              <div key={report.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div><p className="text-sm font-medium text-white">{report.reason}</p><p className="mt-1 text-xs text-[#CBD5E1]">{report.targetType}: {report.targetId}</p></div>
+                  <Badge tone="warning">Pending</Badge>
+                </div>
+                <div className="mt-3 flex gap-2"><Button size="sm" onClick={() => void resolveReport(report.id, 'resolved')}><Check size={15} /> Resolve</Button><Button size="sm" variant="ghost" onClick={() => void resolveReport(report.id, 'dismissed')}><X size={15} /> Dismiss</Button></div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-5">
+          <h2 className="font-semibold text-white">User management</h2>
+          <div className="mt-4 space-y-3">
+            {users.length === 0 ? <p className="text-sm text-[#CBD5E1]">No users found.</p> : users.slice(0, 8).map((user) => (
+              <div key={user.uid} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4F8CFF]/20 text-sm text-white">{user.displayName?.[0]?.toUpperCase() || '?'}</div>
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-white">{user.displayName}</p><p className="truncate text-xs text-[#CBD5E1]">{user.email}</p></div>
+                <Badge tone={user.accountStatus === 'suspended' ? 'danger' : 'neutral'}>{user.accountStatus}</Badge>
+                {user.accountStatus === 'active' && user.role === 'user' && <Button size="sm" variant="ghost" onClick={() => void suspendUser(user.uid)}>Suspend</Button>}
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      </div>
     </AppShell>
-<<<<<<< HEAD
->>>>>>> origin/Shubh
-=======
->>>>>>> 787091f9f38680e0d38925c2fcaef447ce69b9f6
   )
 }

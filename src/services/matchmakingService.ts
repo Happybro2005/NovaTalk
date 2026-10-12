@@ -1,9 +1,29 @@
-import { collection, getDoc, getDocs, limit, query, serverTimestamp, where, doc, updateDoc, writeBatch } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, limit, query, runTransaction, serverTimestamp, updateDoc, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { User } from '../types/models'
 
 export const matchmakingService = {
+  async skipMatch(conversationId: string, userId: string) {
+    const skipEventId = doc(collection(db, 'conversations')).id
+    const skipUntil = Date.now() + 5_000
+    await updateDoc(doc(db, 'conversations', conversationId), {
+      skippedBy: userId,
+      skipEventId,
+      skipUntil,
+      updatedAt: serverTimestamp(),
+    })
+    return { skipEventId, skipUntil }
+  },
+
   async joinStudyQueue(userId: string) {
+    await updateDoc(doc(db, 'users', userId), {
+      online: true,
+      searchingForStudyPartner: true,
+      lastSeen: serverTimestamp(),
+    })
+  },
+
+  async refreshQueue(userId: string) {
     await updateDoc(doc(db, 'users', userId), {
       online: true,
       searchingForStudyPartner: true,
@@ -18,7 +38,7 @@ export const matchmakingService = {
     })
   },
 
-  async findMatch(userId: string) {
+  async findMatch(userId: string, excludedUserIds: string[] = []) {
     const currentUserSnap = await getDoc(doc(db, 'users', userId))
     const currentUser = currentUserSnap.data() as Omit<User, 'uid'> | undefined
     if (!currentUser) return null
@@ -32,9 +52,14 @@ export const matchmakingService = {
       )
     )
 
+    const activeSince = Date.now() - 60_000
     const candidates = queueSnap.docs
       .map((docSnap) => ({ uid: docSnap.id, ...(docSnap.data() as Omit<User, 'uid'>) }))
-      .filter((candidate) => candidate.uid !== userId)
+      .filter((candidate) => candidate.uid !== userId
+        && !excludedUserIds.includes(candidate.uid)
+        && candidate.online
+        && candidate.searchingForStudyPartner
+        && candidate.lastSeen?.toMillis?.() >= activeSince)
 
     if (candidates.length === 0) {
       return null
@@ -67,23 +92,37 @@ export const matchmakingService = {
       return null
     }
 
-    const batch = writeBatch(db)
-    batch.update(doc(db, 'users', userId), { searchingForStudyPartner: false, lastSeen: serverTimestamp() })
-    batch.update(doc(db, 'users', other.uid), { searchingForStudyPartner: false, lastSeen: serverTimestamp() })
-
     const convRef = doc(collection(db, 'conversations'))
-    batch.set(convRef, {
-      type: 'study',
-      createdBy: null,
-      name: 'Study Match',
-      avatarUrl: null,
-      lastMessage: null,
-      participantIds: [userId, other.uid],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    } as any)
-    await batch.commit()
+    try {
+      await runTransaction(db, async (transaction) => {
+        const [currentSnapshot, otherSnapshot] = await Promise.all([
+          transaction.get(doc(db, 'users', userId)),
+          transaction.get(doc(db, 'users', other.uid)),
+        ])
+        const current = currentSnapshot.data() as Partial<User> | undefined
+        const candidate = otherSnapshot.data() as Partial<User> | undefined
+        const isFresh = (profile: Partial<User> | undefined) => Boolean(
+          profile?.online && profile.searchingForStudyPartner && (profile.lastSeen?.toMillis?.() ?? 0) >= activeSince,
+        )
+        if (!isFresh(current) || !isFresh(candidate)) throw new Error('MATCH_NOT_AVAILABLE')
 
-    return convRef.id
+        transaction.update(doc(db, 'users', userId), { searchingForStudyPartner: false, lastSeen: serverTimestamp() })
+        transaction.update(doc(db, 'users', other.uid), { searchingForStudyPartner: false, lastSeen: serverTimestamp() })
+        transaction.set(convRef, {
+          type: 'study',
+          createdBy: null,
+          name: 'New Friend Match',
+          avatarUrl: null,
+          lastMessage: null,
+          participantIds: [userId, other.uid],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        })
+      })
+      return convRef.id
+    } catch (error) {
+      if (error instanceof Error && error.message === 'MATCH_NOT_AVAILABLE') return null
+      throw error
+    }
   },
 }

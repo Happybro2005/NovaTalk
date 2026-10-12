@@ -8,10 +8,14 @@ import {
   signInWithPopup,
   onAuthStateChanged,
   updateProfile,
+  deleteUser,
 } from 'firebase/auth'
 import { auth, googleProvider } from '../firebase'
+import { db } from '../firebase'
 import { userService } from '../services/userService'
-import type { User as StudentProfile } from '../types/models'
+import type { User as StudentProfile, UserSettings } from '../types/models'
+import { getStoredTheme, watchTheme } from '../utils/theme'
+import { doc, onSnapshot } from 'firebase/firestore'
 
 interface AuthContextType {
   currentUser: User | null
@@ -37,20 +41,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let detachLifecycleHandlers: (() => void) | null = null
+    let detachSettingsListener: (() => void) | null = null
+    let detachThemeListener: (() => void) | null = null
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user)
+      detachSettingsListener?.()
+      detachSettingsListener = null
+      detachThemeListener?.()
+      detachThemeListener = null
       if (detachLifecycleHandlers) {
         detachLifecycleHandlers()
         detachLifecycleHandlers = null
       }
 
       if (user) {
+        detachSettingsListener = onSnapshot(doc(db, 'users', user.uid, 'settings', 'default'), (settingsSnapshot) => {
+          const settings = settingsSnapshot.data() as { theme?: UserSettings['theme'] } | undefined
+          detachThemeListener?.()
+          detachThemeListener = watchTheme(settings?.theme ?? getStoredTheme() ?? 'dark')
+        }, (error) => {
+          console.error('Unable to listen for the saved theme', error)
+          detachThemeListener?.()
+          detachThemeListener = watchTheme(getStoredTheme() ?? 'dark')
+        })
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'visible') {
+            void userService.setPresence(user.uid, true)
+          } else {
+            void userService.setOffline(user.uid)
+          }
+        }
+
         void userService.ensureUserDocument(user.uid, {
           email: user.email ?? '',
           displayName: user.displayName ?? 'New User',
           avatarUrl: user.photoURL ?? '',
-        }).then(() => userService.setPresence(user.uid, true))
+        }).then(() => document.visibilityState === 'visible'
+          ? userService.setPresence(user.uid, true)
+          : userService.setOffline(user.uid)).catch((error) => {
+          console.error('Unable to synchronize the Firebase user profile', error)
+        })
 
         const markOffline = () => {
           void userService.setOffline(user.uid)
@@ -58,25 +89,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const markOnline = () => {
           void userService.setPresence(user.uid, true)
         }
+        const presenceHeartbeat = window.setInterval(() => {
+          if (document.visibilityState === 'visible') markOnline()
+        }, 25_000)
         window.addEventListener('beforeunload', markOffline)
         window.addEventListener('pagehide', markOffline)
-        window.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') {
-            markOnline()
-          }
-        })
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        window.addEventListener('pageshow', markOnline)
 
         detachLifecycleHandlers = () => {
           window.removeEventListener('beforeunload', markOffline)
           window.removeEventListener('pagehide', markOffline)
-          window.removeEventListener('visibilitychange', markOnline)
+          window.removeEventListener('pageshow', markOnline)
+          document.removeEventListener('visibilitychange', handleVisibilityChange)
+          window.clearInterval(presenceHeartbeat)
         }
       }
+      if (!user && !getStoredTheme()) detachThemeListener = watchTheme('dark')
       setLoading(false)
     })
 
     return () => {
       detachLifecycleHandlers?.()
+      detachSettingsListener?.()
+      detachThemeListener?.()
       unsubscribe()
     }
   }, [])
@@ -87,8 +123,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function register(email: string, password: string, displayName: string, profile?: Partial<StudentProfile>) {
     const { user } = await createUserWithEmailAndPassword(auth, email, password)
-    await updateProfile(user, { displayName })
-    await userService.createUserDocument(user.uid, { email, displayName, ...profile })
+    try {
+      await updateProfile(user, { displayName })
+      await userService.createUserDocument(user.uid, { email, displayName, ...profile })
+    } catch (error) {
+      try {
+        await deleteUser(user)
+      } catch (cleanupError) {
+        console.error('Unable to roll back the incomplete account', cleanupError)
+      }
+      throw error
+    }
   }
 
   async function logout() {
