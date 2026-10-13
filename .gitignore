@@ -15,6 +15,18 @@ dist-ssr
 .env.*
 !.env.example
 
+# Sensitive or personal project files
+Firebase_API.txt
+Nova-talk.docx
+*.docx
+*.pdf
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.secret
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
