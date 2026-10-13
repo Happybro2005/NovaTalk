@@ -8,8 +8,6 @@ import {
   Sparkles,
   ArrowRight,
   Star,
-  Apple,
-  PlayCircle,
 } from 'lucide-react'
 import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
@@ -253,13 +251,13 @@ export default function LandingPage() {
           <p className="mx-auto mt-3 max-w-md text-[#CBD5E1]">
             NovaTalk is built for friendly introductions, shared group chats, and the kind of conversations that turn into real connection.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button size="lg" variant="secondary">
-              <Apple size={18} /> Get started with iOS
-            </Button>
-            <Button size="lg" variant="secondary">
-              <PlayCircle size={18} /> Get started with Android
-            </Button>
+          <div className="mt-8 flex justify-center">
+            <Link to="/register">
+              <Button size="lg" className="group">
+                Get started
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            </Link>
           </div>
         </GlassCard>
       </section>
