@@ -1,175 +1,175 @@
 # NovaTalk
 
-A production-ready, real-time social communication platform featuring anonymous stranger chat, friend networking, communities, live messaging, and a Firebase-powered admin control center — all built on React + Vite and Firebase.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white" alt="TypeScript 6" />
+  <img src="https://img.shields.io/badge/Firebase-Ready-FFCA28?logo=firebase&logoColor=black" alt="Firebase ready" />
+</p>
 
-This repository contains the working Firebase-backed social app, including friend flows, groups, real-time chat, profile/NovaName handling, and admin-safe Firestore logic.
+<p align="center">
+  <img width="1200" src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80" alt="NovaTalk product preview" />
+</p>
 
-For architecture, integration notes, and guardrails for future AI/maintainer changes, see [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md).
+<p align="center">
+  <strong>NovaTalk</strong>
+  <br>
+  <em>Where conversation becomes community.</em>
+</p>
 
-## Run it locally
+<p align="center">
+  <a href="#quick-start"><img src="https://img.shields.io/badge/Quick%20Start-Run%20App-00C2FF?style=for-the-badge" alt="Quick start" /></a>
+  <a href="#features"><img src="https://img.shields.io/badge/Features-Explore-8B5CF6?style=for-the-badge" alt="Explore features" /></a>
+  <a href="#roadmap"><img src="https://img.shields.io/badge/Roadmap-View-34D399?style=for-the-badge" alt="View roadmap" /></a>
+</p>
+
+## Founder narrative
+
+NovaTalk is being built to solve a simple but important problem: online social products often feel noisy, transactional, or disconnected from real human connection.
+
+We believe social platforms should help people meet, talk, and build trust quickly without friction. NovaTalk brings anonymous conversation, friend discovery, study communities, and operational tooling into one premium product experience designed for modern digital communities.
+
+This project represents a product-first vision: a polished social experience with the structure of a scalable platform, built on a modern frontend stack and ready for Firebase-backed expansion.
+
+## Why this matters
+
+- The internet is saturated with generic social apps, but few combine anonymity, safety, and community in one product.
+- Students and communities need spaces that feel lively, intentional, and easy to trust.
+- A premium product experience can significantly improve engagement and retention when paired with meaningful social mechanics.
+
+## Product overview
+
+| Pillar | Strategic value |
+| --- | --- |
+| Anonymous discovery | Fast user onboarding and low-friction social interaction |
+| Friend networking | Trusted relationship building and retention |
+| Community spaces | Study groups, shared interests, and belonging |
+| Admin operations | Moderation, safety, and platform governance |
+| Premium UX | Brand trust, engagement, and long-term product differentiation |
+
+## Quick start
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the printed localhost URL.
-
----
-
-## What's included in Frontend (Design Pass 1)
-
-- `/` — Landing page (hero, live stats, feature catalog, testimonials, download CTA, footer)
-- `/login` — Login (glass card, Google button, animated backdrop)
-- `/register` — Registration (avatar upload UI, full profile fields, interests picker)
-- `/forgot-password` — Password reset
-- `/dashboard` — User dashboard (quick actions, recent chats, online friends, suggested friends, community feed, notifications) inside the app shell (sidebar + topbar + mobile bottom nav)
-- `/admin` — Admin passcode gate (6-digit code, no separate admin account/login flow)
-- `/admin/dashboard` — Mission Control overview (stat widgets, growth chart, recent reports, recent users table)
-
-### Signature design element
-
-A live "constellation field" canvas (`src/components/ConstellationField.tsx`) drifts particles that connect into faint lines when close — a literal constellation forming and dissolving. It sits behind every screen via `AmbientBackdrop.tsx`, tying the cosmic theme directly into the UI rather than using generic blurred blobs.
-
-Feature cards on the landing page are labeled with real constellation/star names (ORION, LYRA, POLARIS, AEGIS, VEGA, CARTOGRAPHY) chosen to match what each feature does, instead of generic 01/02/03 numbering.
-
-### Stack notes
-
-- Tailwind v4 via `@tailwindcss/vite` — tokens live in `src/index.css` under `@theme`.
-- Fonts: Space Grotesk (display), Inter (body), JetBrains Mono (eyebrows/labels) — loaded via Google Fonts in `index.html`.
-- All components are plain Tailwind + custom primitives (`src/components/ui.tsx`) — no shadcn/ui, to keep the bundle light and the cosmic aesthetic tightly controlled.
-
----
-
-## Overall Project Overview & Architecture
-
-### Tech Stack
-
-- Frontend:        React.js, Vite, HTML5, CSS3, TypeScript, Tailwind CSS, Framer Motion
-- State/Logic:      React Context API, Custom Hooks
-- Authentication:   Firebase Authentication (Email/Password, Google Sign-In)
-- Database:         Cloud Firestore
-- Real-Time Layer:  Firebase Realtime Database
-- Storage:          Firebase Storage
-- Security:         Firebase Security Rules, Role-Based Access Control (RBAC)
-- Analytics:        Firebase Analytics
-- Hosting:          Firebase Hosting or Vercel
-
-### Architecture
-
-```
-End Users (User Portal / Admin Portal)
-        |
-        v
-React + Vite Frontend
-        |
-        +--> Firebase Authentication
-        +--> Cloud Firestore
-        +--> Realtime Database
-        +--> Firebase Storage
-        +--> Firebase Analytics
-        |
-        v
-Firebase Security Rules (Firestore / Storage / RTDB / Role Validation)
-        |
-        v
-Firebase Cloud Services (Transactions, Batch Writes, Offline Persistence,
-                          Real-time Listeners, Aggregate Queries, App Check)
-```
-
-See `/docs/NovaTalk_Architecture_and_Features.docx` for full diagrams covering:
-1. High-Level Architecture
-2. Component Architecture
-3. Data Flow Architecture
-4. Security Architecture
-5. Application Flow (User Journey)
-
-### Firestore Collections
-
-`users/`, `admins/`, `usernames/`, `friends/`, `friendRequests/`, `blockedUsers/`, `chats/`, `messages/`, `communities/`, `posts/`, `comments/`, `reports/`, `supportTickets/`, `notifications/`, `auditLogs/`, `settings/`
-
-### Realtime Database Structure
-
-`status/`, `typing/`, `waitingUsers/`, `activeMatches/`, `presence/`, `voiceCalls/`
-
-### Storage Structure
-
-`profile-images/`, `chat-images/`, `voice-notes/`, `community-media/`, `documents/`
-
----
+Then open the local URL printed in the terminal.
 
 ## Features
 
-### User Features
-- **Authentication & Security:** Email/Password + Google Sign-In, email verification, session restoration, protected routes, offline persistence
-- **Profile:** username, display name, avatar, bio, country, gender, DOB, language, interests, online status/last seen, privacy controls
-- **Stranger Chat:** anonymous matchmaking queue, instant connection, skip/end chat, typing indicators, read receipts, live presence
-- **Friends:** send/accept/reject/cancel requests, remove, block/unblock, search
-- **Communities:** create/join/leave, feed, posts, comments, reactions, media, moderation
-- **Messaging:** real-time text, emoji, images, voice notes, files, chat history, timestamps, read/typing status
-- **Calling:** voice calls, incoming call notifications, call history, mute/end
-- **Notifications:** friend requests, messages, communities, reports, system, real-time alerts
-- **Safety:** report/block users, privacy settings, ban/suspension detection
-- **Settings:** change password/email, update profile, notification & privacy preferences, language preferences
+### Social product layer
 
-### Admin Mission Control
-- **Admin Authentication:** separate login, role verification, super admin / moderator / support staff access, protected routes
-- **Live Dashboard:** total & online users, active chats, matchmaking queue, messages, communities, reports, tickets, banned/suspended users, DB & storage status
-- **User Management:** view/search/filter, suspend/ban/unban, restrict matchmaking, login history
-- **Reports Management:** view/approve/reject/resolve/delete, categories, reporter info, history
-- **Chat & Community Moderation:** view live chats, remove messages/posts/comments, delete chats/communities, ban members
-- **Announcements:** global announcements, maintenance notices, broadcasts
-- **Support Center:** view/assign/resolve tickets, ticket history
-- **Analytics:** DAU/MAU, user & friend growth, message volume, report trends, matchmaking stats, retention
-- **Audit Logs:** admin logins, user actions, moderation, DB changes, security & auth events
-- **Database Management:** Firestore/RTDB/Storage monitoring, collection stats, DB health
-- **Security:** role-based permissions, Firestore/Storage/RTDB rules, secure route guards, session validation, username reservation transactions
+- Anonymous stranger matching
+- Friend request and connection management
+- Real-time messaging workflows
+- Notifications and user engagement signals
+- Study groups and community interaction
 
-### Roadmap / Future Enhancements
-Video calling, AI-powered chat moderation, AI matchmaking recommendations, end-to-end encryption, voice & video rooms, stories/status updates, push notifications, multi-language support, QR code profile sharing, premium membership & subscriptions, verification badges, dark/light theme toggle, desktop app, Android & iOS apps, AI chat assistant, live translation, screen sharing, event-based communities, cloud backup & restore.
+### Platform operations layer
 
----
+- Protected admin access
+- Mission control dashboard
+- Moderation and reporting workflows
+- User lifecycle and safety management
+- Growth analytics and operational visibility
 
-## Configuration & Deploying Backend Rules (Next Steps)
+### Product experience layer
 
-1. **Configure Firebase**
-   - Create a Firebase project at https://console.firebase.google.com
-   - Enable Authentication (Email/Password + Google), Firestore, Realtime Database, Storage, and Analytics
-   - Copy your Firebase config into a `.env` file at the project root:
-     ```env
-     VITE_FIREBASE_API_KEY=your_api_key
-     VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-     VITE_FIREBASE_PROJECT_ID=your_project_id
-     VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-     VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-     VITE_FIREBASE_APP_ID=your_app_id
-     VITE_FIREBASE_DATABASE_URL=https://your_project.firebaseio.com
-     ```
-2. **Deploy Firestore / RTDB / Storage security rules**
-   ```bash
-   firebase deploy --only firestore:rules,database,storage
-   ```
+- Premium cosmic design language
+- Responsive multi-device layout
+- Dark and light mode readiness
+- Conversion-oriented product UI system
 
----
+## Tech stack
 
-## Security
+- React 19
+- Vite 8
+- TypeScript 6
+- Tailwind CSS v4
+- Framer Motion
+- Lucide icons
+- React Router
+- Firebase-ready architecture
 
-Access is controlled through a role-detection flow: authenticated users are routed to either the User Portal or Admin Portal, each guarded by a dedicated route guard (`RequireAuth` / `RequireAdmin`), before requests reach Firestore and Realtime Database security rules.
+## Architecture
 
----
+```text
+Users / Admins
+    |
+    v
+React + Vite Frontend
+    |
+    +--> Firebase Authentication
+    +--> Cloud Firestore
+    +--> Realtime Database
+    +--> Firebase Storage
+    +--> Firebase Analytics
+    |
+    v
+Route Guards + Security Rules
+```
+
+## Data model
+
+### Firestore collections
+
+`users/`, `admins/`, `usernames/`, `friends/`, `friendRequests/`, `blockedUsers/`, `chats/`, `messages/`, `communities/`, `posts/`, `comments/`, `reports/`, `supportTickets/`, `notifications/`, `auditLogs/`, `settings/`
+
+### Realtime paths
+
+`status/`, `typing/`, `waitingUsers/`, `activeMatches/`, `presence/`, `voiceCalls/`
+
+### Storage folders
+
+`profile-images/`, `chat-images/`, `voice-notes/`, `community-media/`, `documents/`
+
+## Firebase configuration
+
+Create a Firebase project and enable Authentication, Firestore, Realtime Database, Storage, and Analytics.
+
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_DATABASE_URL=https://your_project.firebaseio.com
+```
+
+Then deploy the rules:
+
+```bash
+firebase deploy --only firestore:rules,database,storage
+```
+
+## Roadmap
+
+- Video calling
+- Community moderation tools
+- Smart matchmaking
+- Encrypted communications
+- Voice and video rooms
+- Push notifications
+- Cross-platform expansion
+
+## Docs
+
+- [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md)
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m "Add your feature"`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Commit your changes
+4. Open a pull request
 
----
+## Credits
 
-## Author
+- Built for NovaTalk by Shubh Tamrakar
+- Concept contribution by Prashant Singh
 
-**Prashant Singh**
-- GitHub: [Happybro2005](https://github.com/Happybro2005)
-- Email: prashantsingh63877@gmail.com
+## License
+
+This project is currently in active development as a portfolio and prototype build.
