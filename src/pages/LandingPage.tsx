@@ -17,66 +17,66 @@ import { Button, Eyebrow, MotionGlassCard, GlassCard } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 
 const stats = [
-  { value: '2.4M+', label: 'Study connections sparked' },
-  { value: '180+', label: 'Campuses connected' },
-  { value: '40K', label: 'Project groups orbiting' },
-  { value: '99.9%', label: 'Realtime sync uptime' },
+  { value: '50K+', label: 'new friendships sparked' },
+  { value: '12K+', label: 'active groups' },
+  { value: '24/7', label: 'live conversations' },
+  { value: '99.9%', label: 'message sync uptime' },
 ]
 
 const features = [
   {
-    tag: 'ORION',
-    title: 'AI Study Match',
-    desc: 'A matching engine that pairs you with students by department, semester, subjects, interests, and skills in seconds.',
+    tag: 'DISCOVER',
+    title: 'Friend discovery',
+    desc: 'Meet people who match your vibe, interests, and social energy — then send a real request to connect.',
     icon: Sparkles,
   },
   {
-    tag: 'LYRA',
-    title: 'Study groups',
-    desc: 'Small constellations built around subjects and project goals — join, post, and learn together.',
+    tag: 'COMMUNITIES',
+    title: 'Group spaces',
+    desc: 'Build circles around hobbies, goals, and shared moments — from small friend groups to active communities.',
     icon: Users,
   },
   {
-    tag: 'POLARIS',
-    title: 'Mentors and peers',
-    desc: 'Turn a good study match into a lasting academic connection you can always find again.',
+    tag: 'CONNECTIONS',
+    title: 'Real conversations',
+    desc: 'From a first hello to a lasting friendship, NovaTalk keeps every chat fast, personal, and in the moment.',
     icon: Star,
   },
   {
-    tag: 'AEGIS',
-    title: 'Safety by design',
-    desc: 'Block, report, and moderation tooling built in from the first message — so the sky stays safe to explore.',
+    tag: 'PRIVACY',
+    title: 'Comfort by design',
+    desc: 'Control who sees your presence, when you reply, and how visible you want to be in every social room.',
     icon: ShieldCheck,
   },
   {
-    tag: 'VEGA',
-    title: 'Real-time everything',
-    desc: 'Typing indicators, presence, voice notes and media — delivered the instant they happen, no refresh required.',
+    tag: 'LIVE',
+    title: 'Realtime social sync',
+    desc: 'New messages, presence updates, and read receipts show up instantly without interrupting the flow.',
     icon: MessageCircle,
   },
   {
-    tag: 'CARTOGRAPHY',
-    title: 'A campus network, not a feed',
-    desc: 'Discover students, departments, and communities across campus with a map that actually feels alive.',
+    tag: 'NETWORK',
+    title: 'A social map, not a feed',
+    desc: 'Follow your circles, find familiar faces, and explore fresh conversations that feel human instead of algorithmic.',
     icon: Globe2,
   },
 ]
 
 const testimonials = [
   {
-    quote: 'I found a coding partner in my department and we finished a project I had been stuck on for weeks.',
-    name: 'Student A',
-    role: 'Computer Science, Semester 5',
+    quote: 'I met someone through NovaTalk and we ended up hanging out the same week. It felt natural, not forced.',
+    name: 'Ari',
+    role: 'Friendship match, weekend plans',
   },
   {
-    quote: 'The study group for database systems here is more active than my class WhatsApp chat.',
-    name: 'Student B',
-    role: 'Project collaboration lead',
+    quote: 'The group chat feels like my actual social circle — people check in, share ideas, and keep each other posted.',
+    name: 'Mina',
+    role: 'Community host',
   },
   {
-    quote: 'It feels like the campus network I always wanted — helpful, fast, and actually specific to what I need.',
-    name: 'Student C',
-    role: 'Study match regular',
+    quote: 'It finally feels like a place to meet people who actually match your energy instead of just browsing profiles.',
+    name: 'Jules',
+    role: 'New connections, daily chat',
   },
 ]
 
@@ -94,7 +94,7 @@ export default function LandingPage() {
             <a href="#features" className="transition-colors hover:text-white">Features</a>
             <a href="#stats" className="transition-colors hover:text-white">Stats</a>
             <a href="#stories" className="transition-colors hover:text-white">Stories</a>
-            <a href="#download" className="transition-colors hover:text-white">Download</a>
+            <a href="#community" className="transition-colors hover:text-white">Community</a>
           </nav>
           <div className="flex items-center gap-3">
             <Link to="/login">
@@ -120,9 +120,9 @@ export default function LandingPage() {
           className="mt-6 text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          Every student is a
+          Meet the people who
           <br />
-          <span className="text-gradient">potential collaborator.</span>
+          <span className="text-gradient">match your energy.</span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 24 }}
@@ -130,9 +130,9 @@ export default function LandingPage() {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mx-auto mt-6 max-w-xl text-lg text-[#CBD5E1]"
         >
-          NovaTalk pairs you with the right students in real time, then helps the good
-          matches stick — through study partners, project teams, communities, and
-          live doubt-solving spaces.
+          NovaTalk is where real friendships start: discover people worth knowing,
+          jump into group conversations, and keep the moments moving with live chat,
+          presence, and meaningful social circles.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -142,12 +142,12 @@ export default function LandingPage() {
         >
           <Link to="/register">
             <Button size="lg" className="group">
-              Find a study match
+              Meet someone new
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
             </Button>
           </Link>
           <Link to={currentUser ? '/dashboard' : '/login'}>
-            <Button size="lg" variant="secondary">See the network</Button>
+            <Button size="lg" variant="secondary">Explore the network</Button>
           </Link>
         </motion.div>
 
@@ -159,17 +159,17 @@ export default function LandingPage() {
         >
           <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3">
             <div className="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse-glow" />
-            <span className="eyebrow">MATCHED · COMPUTER SCIENCE, SEMESTER 5</span>
+            <span className="eyebrow">LIVE · FRIENDSHIP DISCOVERY</span>
           </div>
           <div className="mt-4 space-y-3">
             <div className="flex justify-start">
               <div className="max-w-xs rounded-2xl rounded-bl-sm bg-white/[0.08] px-4 py-2.5 text-sm text-[#CBD5E1]">
-                okay wait, you also think Saturn is the most photogenic planet?
+                this city has a good vibe. are you always up for a coffee chat?
               </div>
             </div>
             <div className="flex justify-end">
               <div className="max-w-xs rounded-2xl rounded-br-sm bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED] px-4 py-2.5 text-sm text-white">
-                obviously. the rings do all the work for it
+                absolutely. i’m in — let’s make it happen
               </div>
             </div>
             <div className="flex items-center gap-1.5 pl-1 text-xs text-[#CBD5E1]/60">
@@ -199,10 +199,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>THE CATALOG</Eyebrow>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-            Six ways NovaTalk maps a student network
+            Six ways NovaTalk builds a real social circle
           </h2>
           <p className="mt-3 text-[#CBD5E1]">
-            Every part of the product is named for the piece of campus life it helps organize — matching, grouping, and collaborating.
+            From first hello to lasting community, every flow is designed to help people connect, chat, and stay in touch naturally.
           </p>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -223,7 +223,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>FIELD REPORTS</Eyebrow>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-            Students who found their team
+            People who found their people
           </h2>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-3">
@@ -244,21 +244,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="download" className="mx-auto max-w-6xl px-6 pb-28">
+      <section id="community" className="mx-auto max-w-6xl px-6 pb-28">
         <GlassCard strong className="glow-accent relative overflow-hidden px-8 py-14 text-center md:px-16">
-          <Eyebrow>COMING TO YOUR POCKET</Eyebrow>
+          <Eyebrow>JOIN THE CIRCLE</Eyebrow>
           <h2 className="mt-3 text-4xl font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-            Take your campus network with you
+            Keep your people close and discover more worth knowing
           </h2>
           <p className="mx-auto mt-3 max-w-md text-[#CBD5E1]">
-            Native apps for iOS and Android are in orbit — join the list to be notified the moment they launch.
+            NovaTalk is built for friendly introductions, shared group chats, and the kind of conversations that turn into real connection.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button size="lg" variant="secondary">
-              <Apple size={18} /> Notify me on iOS
+              <Apple size={18} /> Get started with iOS
             </Button>
             <Button size="lg" variant="secondary">
-              <PlayCircle size={18} /> Notify me on Android
+              <PlayCircle size={18} /> Get started with Android
             </Button>
           </div>
         </GlassCard>
