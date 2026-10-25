@@ -154,9 +154,7 @@ firebase deploy --only firestore:rules,database,storage
 - Push notifications
 - Cross-platform expansion
 
-## Docs
 
-- [docs/AI_HANDOFF.md](docs/AI_HANDOFF.md)
 
 ## Contributing
 
@@ -168,7 +166,7 @@ firebase deploy --only firestore:rules,database,storage
 ## Credits
 
 - Built for NovaTalk by Shubh Tamrakar
-- Concept contribution by Prashant Singh
+- Prashant Singh
 
 ## License
 
