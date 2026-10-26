@@ -1,8 +1,25 @@
-import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
+import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { Notification } from '../types/models'
 
 export const notificationService = {
+  async sendNotification(
+    userId: string,
+    message: string,
+    type: 'system' | 'friend_request' | 'friend_accepted' | 'community_join' | 'support_reply' | 'message' = 'system',
+    link: string | null = null
+  ) {
+    if (!userId) return
+    await addDoc(collection(db, 'notifications'), {
+      userId,
+      type,
+      message,
+      read: false,
+      link,
+      createdAt: serverTimestamp(),
+    })
+  },
+
   listen(userId: string, callback: (items: Notification[]) => void, onError?: (error: Error) => void) {
     return onSnapshot(query(
       collection(db, 'notifications'),

@@ -64,6 +64,8 @@ interface ReportModalData {
   isOpen: boolean
   type: 'message' | 'chat'
   targetId: string
+  reportedUserId?: string
+  reportedUserName?: string
   text?: string
   senderName?: string
   chatName?: string
@@ -343,6 +345,8 @@ export default function ContextMenu() {
         isOpen: true,
         type: 'message',
         targetId: menu.messageId || 'message',
+        reportedUserId: menu.messageSenderId,
+        reportedUserName: menu.messageSenderName,
         text: menu.messageText,
         senderName: menu.messageSenderName,
         chatName: menu.chatName,
@@ -357,6 +361,8 @@ export default function ContextMenu() {
         isOpen: true,
         type: 'chat',
         targetId: menu.chatId || 'chat',
+        reportedUserId: menu.chatId,
+        reportedUserName: menu.chatName,
         chatName: menu.chatName,
       })
     }
@@ -386,6 +392,8 @@ export default function ContextMenu() {
         reporterId: currentUser.uid,
         targetType: reportModal?.type === 'message' ? 'message' : 'user',
         targetId: reportModal?.targetId || 'unknown',
+        reportedUserId: reportModal?.reportedUserId,
+        reportedUserName: reportModal?.reportedUserName || reportModal?.senderName || reportModal?.chatName,
         reason: reasonLabel,
         details: reportDetails,
         contentPreview: reportModal?.text,

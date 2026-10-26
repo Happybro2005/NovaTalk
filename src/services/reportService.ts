@@ -5,6 +5,8 @@ export interface CreateReportParams {
   reporterId: string
   targetType: 'user' | 'message' | 'post' | 'community'
   targetId: string
+  reportedUserId?: string
+  reportedUserName?: string
   reason: string
   details?: string
   contentPreview?: string
@@ -15,11 +17,16 @@ export const reportService = {
     reporterId,
     targetType,
     targetId,
+    reportedUserId,
+    reportedUserName,
     reason,
     details,
     contentPreview,
   }: CreateReportParams): Promise<string> {
-    if (reporterId && targetId && reporterId === targetId) {
+    if (
+      (reporterId && targetId && reporterId === targetId) ||
+      (reporterId && reportedUserId && reporterId === reportedUserId)
+    ) {
       throw new Error('Self chat or your own messages cannot be reported.')
     }
 
@@ -35,6 +42,8 @@ export const reportService = {
       reporterId,
       targetType,
       targetId: targetId || 'unknown',
+      reportedUserId: reportedUserId || (targetType === 'user' ? targetId : ''),
+      reportedUserName: reportedUserName || '',
       reason: formattedReason,
       status: 'pending',
       createdAt: serverTimestamp(),

@@ -19,6 +19,21 @@ export const adminService = {
     await updateDoc(doc(db, 'reports', reportId), { status })
   },
 
+  async resolveReportWithAction(
+    reportId: string,
+    actionTaken: 'banned' | 'no_action' | 'dismissed',
+    banDays?: number | null,
+    note?: string
+  ) {
+    await updateDoc(doc(db, 'reports', reportId), {
+      status: actionTaken === 'banned' ? 'resolved' : 'dismissed',
+      actionTaken,
+      banDays: banDays ?? null,
+      actionNote: note || '',
+      resolvedAt: serverTimestamp(),
+    })
+  },
+
   async getSupportTickets() {
     const snap = await getDocs(collection(db, 'support_tickets'))
     return snap.docs
@@ -78,6 +93,25 @@ export const adminService = {
 
   async suspendUser(uid: string) {
     await updateDoc(doc(db, 'users', uid), { accountStatus: 'suspended' })
+  },
+
+  async banUser(uid: string, days: number | null, reason?: string) {
+    const banExpiresAt = days && days > 0 ? Date.now() + days * 24 * 60 * 60 * 1000 : null
+    await updateDoc(doc(db, 'users', uid), {
+      accountStatus: 'banned',
+      banExpiresAt,
+      banReason: reason || 'Violation of NovaTalk Community Guidelines',
+      bannedAt: Date.now(),
+    })
+  },
+
+  async unbanUser(uid: string) {
+    await updateDoc(doc(db, 'users', uid), {
+      accountStatus: 'active',
+      banExpiresAt: null,
+      banReason: null,
+      bannedAt: null,
+    })
   },
 
   async deleteUser(uid: string) {

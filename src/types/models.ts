@@ -22,7 +22,10 @@ export interface User {
   lastSeen: Timestamp
   online: boolean
   searchingForStudyPartner: boolean
-  accountStatus: 'active' | 'suspended' | 'deleted'
+  accountStatus: 'active' | 'suspended' | 'banned' | 'deleted'
+  banExpiresAt?: number | null
+  banReason?: string | null
+  bannedAt?: number | null
   role: 'user' | 'admin' | 'moderator'
   verificationStatus: boolean
 }
@@ -258,7 +261,13 @@ export interface Report {
   reporterId: string
   targetType: 'user' | 'message' | 'post' | 'community'
   targetId: string
+  reportedUserId?: string
+  reportedUserName?: string
   reason: string
   status: 'pending' | 'resolved' | 'dismissed'
+  actionTaken?: 'banned' | 'no_action' | 'dismissed'
+  banDays?: number | null
+  actionNote?: string
+  resolvedAt?: Timestamp
   createdAt: Timestamp
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Ban,
   Check,
   ChevronDown,
   Layers3,
@@ -21,6 +22,7 @@ import AppShell from '../../components/AppShell'
 import { Badge, Button, GlassCard } from '../../components/ui'
 import { useAuth } from '../../contexts/AuthContext'
 import { adminService } from '../../services/adminService'
+import { notificationService } from '../../services/notificationService'
 import { userService } from '../../services/userService'
 import type { Report, SupportTicket, User } from '../../types/models'
 import NotFoundPage from '../NotFoundPage'
@@ -46,6 +48,18 @@ export default function AdminDashboard() {
   const [sendingReplyTicketId, setSendingReplyTicketId] = useState<string | null>(null)
   const [togglingReplyTicketId, setTogglingReplyTicketId] = useState<string | null>(null)
   const [expandedTicketIds, setExpandedTicketIds] = useState<Record<string, boolean>>({})
+
+  // State for admin user ban modal and report actions
+  const [banModal, setBanModal] = useState<{
+    isOpen: boolean
+    offenderId: string
+    offenderName: string
+    report?: Report
+  } | null>(null)
+  const [selectedBanPreset, setSelectedBanPreset] = useState<string>('7')
+  const [customDaysInput, setCustomDaysInput] = useState<string>('7')
+  const [adminBanReason, setAdminBanReason] = useState<string>('')
+  const [isSubmittingBan, setIsSubmittingBan] = useState<boolean>(false)
 
   // Double-check admin authorization at the component level
   useEffect(() => {
@@ -179,13 +193,88 @@ export default function AdminDashboard() {
     }
   }
 
-  async function suspendUser(uid: string) {
+
+  async function handleConfirmBan() {
+    if (!banModal) return
     try {
-      await adminService.suspendUser(uid)
-      setUsers((items) => items.map((user) => user.uid === uid ? { ...user, accountStatus: 'suspended' } : user))
-      setActionSuccess('User account suspended.')
+      setIsSubmittingBan(true)
+      let days: number | null = null
+      if (selectedBanPreset === 'permanent') {
+        days = null
+      } else if (selectedBanPreset === 'custom') {
+        const parsed = parseInt(customDaysInput, 10)
+        days = isNaN(parsed) || parsed <= 0 ? 7 : parsed
+      } else {
+        days = parseInt(selectedBanPreset, 10) || 7
+      }
+
+      const reason = adminBanReason.trim() || 'Violation of NovaTalk Community Guidelines'
+
+      await adminService.banUser(banModal.offenderId, days, reason)
+
+      // If tied to a report:
+      if (banModal.report) {
+        await adminService.resolveReportWithAction(banModal.report.id, 'banned', days, reason)
+
+        // Requirement: "the action notification will reach to the person who reported"
+        const durationText = days ? `for ${days} day${days > 1 ? 's' : ''}` : 'permanently'
+        const notifMsg = `Update on your report: The reported user (${banModal.offenderName}) has been banned ${durationText} following moderation review. Thank you for keeping our orbit safe.`
+        await notificationService.sendNotification(banModal.report.reporterId, notifMsg, 'system')
+
+        // Remove from pending reports list
+        setReports((items) => items.filter((r) => r.id !== banModal.report?.id))
+      }
+
+      // Update local users state
+      const banExpiresAt = days ? Date.now() + days * 86400000 : null
+      setUsers((items) =>
+        items.map((u) =>
+          u.uid === banModal.offenderId
+            ? { ...u, accountStatus: 'banned', banExpiresAt, banReason: reason, bannedAt: Date.now() }
+            : u
+        )
+      )
+
+      setActionSuccess(
+        `User "${banModal.offenderName}" has been banned ${days ? `for ${days} days` : 'permanently'}.${banModal.report ? ' Action notification sent to reporter.' : ''}`
+      )
+      setBanModal(null)
+      setAdminBanReason('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to suspend user.')
+      setError(err instanceof Error ? err.message : 'Failed to ban user.')
+    } finally {
+      setIsSubmittingBan(false)
+    }
+  }
+
+  async function handleNoActionNeeded(report: Report) {
+    try {
+      await adminService.resolveReportWithAction(report.id, 'no_action')
+
+      // Requirement: "the action notification will reach to the person who reported"
+      const notifMsg = `Update on your report: Moderators have reviewed the reported conversation. After careful investigation, no policy violation was found at this time.`
+      await notificationService.sendNotification(report.reporterId, notifMsg, 'system')
+
+      setReports((items) => items.filter((r) => r.id !== report.id))
+      setActionSuccess('Report resolved as "No action needed". Reporter has been notified.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resolve report.')
+    }
+  }
+
+  async function handleUnbanUser(user: User) {
+    try {
+      await adminService.unbanUser(user.uid)
+      setUsers((items) =>
+        items.map((u) =>
+          u.uid === user.uid
+            ? { ...u, accountStatus: 'active', banExpiresAt: null, banReason: null, bannedAt: null }
+            : u
+        )
+      )
+      setActionSuccess(`User "${user.novaName || user.displayName || user.username}" has been unbanned.`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to unban user.')
     }
   }
 
@@ -598,13 +687,39 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                      <Badge tone={user.accountStatus === 'suspended' ? 'danger' : 'neutral'}>
-                        {user.accountStatus}
+                      <Badge tone={user.accountStatus === 'banned' || user.accountStatus === 'suspended' ? 'danger' : 'neutral'}>
+                        {user.accountStatus === 'banned'
+                          ? user.banExpiresAt
+                            ? `Banned (${Math.max(1, Math.ceil((user.banExpiresAt - Date.now()) / 86400000))}d left)`
+                            : 'Permanent Ban'
+                          : user.accountStatus}
                       </Badge>
 
+                      {(user.accountStatus === 'banned' || user.accountStatus === 'suspended') && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => void handleUnbanUser(user)}
+                          className="text-emerald-400 hover:text-emerald-300"
+                        >
+                          <Unlock size={14} /> Unban
+                        </Button>
+                      )}
+
                       {user.accountStatus === 'active' && user.role !== 'admin' && (
-                        <Button size="sm" variant="ghost" onClick={() => void suspendUser(user.uid)}>
-                          Suspend
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            setBanModal({
+                              isOpen: true,
+                              offenderId: user.uid,
+                              offenderName: user.novaName || user.displayName || user.username || user.email || 'User',
+                            })
+                          }
+                          className="text-amber-400 hover:text-amber-300"
+                        >
+                          <Ban size={14} /> Ban
                         </Button>
                       )}
 
@@ -643,31 +758,210 @@ export default function AdminDashboard() {
             {reports.length === 0 ? (
               <p className="text-sm text-[#CBD5E1]">No pending reports in the system.</p>
             ) : (
-              reports.map((report) => (
-                <div key={report.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-white">{report.reason}</p>
-                      <p className="mt-1 text-xs text-[#CBD5E1]">
-                        Target: <span className="text-white">{report.targetType}</span> ({report.targetId})
-                      </p>
+              reports.map((report) => {
+                const offenderId = report.reportedUserId || (report.targetType === 'user' ? report.targetId : '')
+                const offenderName = report.reportedUserName || (offenderId ? users.find((u) => u.uid === offenderId)?.displayName : null) || 'Reported User'
+
+                return (
+                  <div key={report.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-white">{report.reason}</p>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#CBD5E1]">
+                          <span>Target: <strong className="text-white">{report.targetType}</strong> ({report.targetId})</span>
+                          {offenderId && (
+                            <span className="rounded bg-red-500/15 border border-red-500/30 px-2 py-0.5 text-[11px] text-red-300">
+                              Offender: <strong>{offenderName}</strong> ({offenderId})
+                            </span>
+                          )}
+                          <span className="text-[#94A3B8]">Reported by: {report.reporterId}</span>
+                        </div>
+                      </div>
+                      <Badge tone="warning">Pending</Badge>
                     </div>
-                    <Badge tone="warning">Pending</Badge>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/5 pt-3">
+                      {offenderId ? (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            setBanModal({
+                              isOpen: true,
+                              offenderId,
+                              offenderName,
+                              report,
+                            })
+                          }
+                          className="bg-red-500/90 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
+                        >
+                          <Ban size={14} /> Ban User
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const manualId = window.prompt('Enter User UID to ban:')
+                            if (manualId?.trim()) {
+                              setBanModal({
+                                isOpen: true,
+                                offenderId: manualId.trim(),
+                                offenderName: manualId.trim(),
+                                report,
+                              })
+                            }
+                          }}
+                          className="bg-red-500/90 hover:bg-red-600 text-white"
+                        >
+                          <Ban size={14} /> Ban User
+                        </Button>
+                      )}
+
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => void handleNoActionNeeded(report)}
+                        className="text-white hover:bg-white/10"
+                      >
+                        <ShieldCheck size={14} /> No Action Needed
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => void resolveReport(report.id, 'dismissed')}
+                        className="text-[#94A3B8] hover:text-white ml-auto"
+                      >
+                        <X size={14} /> Dismiss
+                      </Button>
+                    </div>
                   </div>
-                  <div className="mt-3 flex gap-2">
-                    <Button size="sm" onClick={() => void resolveReport(report.id, 'resolved')}>
-                      <Check size={15} /> Resolve
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => void resolveReport(report.id, 'dismissed')}>
-                      <X size={15} /> Dismiss
-                    </Button>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </GlassCard>
       </div>
+
+      {/* Admin Ban User Modal */}
+      {banModal?.isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ban-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-150"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-red-500/30 bg-[#0F1420] p-6 text-white shadow-2xl ring-1 ring-red-500/20 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/15 text-red-400">
+                <Ban size={20} />
+              </div>
+              <div>
+                <h2 id="ban-modal-title" className="text-lg font-semibold text-white">
+                  Ban User Account
+                </h2>
+                <p className="text-xs text-[#94A3B8]">
+                  Restricts user from accessing the NovaTalk dashboard & orbit.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs">
+              <p className="font-semibold text-white">Target User:</p>
+              <p className="text-[#93C5FD] font-mono mt-0.5">{banModal.offenderName} ({banModal.offenderId})</p>
+              {banModal.report && (
+                <p className="mt-1 text-[#CBD5E1] text-[11px] border-t border-white/5 pt-1">
+                  Report Reason: {banModal.report.reason}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-xs font-semibold text-[#CBD5E1] mb-2 uppercase tracking-wider">
+                Select Ban Duration
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: '1', label: '1 Day' },
+                  { id: '3', label: '3 Days' },
+                  { id: '7', label: '7 Days' },
+                  { id: '14', label: '14 Days' },
+                  { id: '30', label: '30 Days' },
+                  { id: 'permanent', label: 'Permanent' },
+                ].map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setSelectedBanPreset(preset.id)}
+                    className={`rounded-xl border py-2 text-xs font-medium transition-all ${
+                      selectedBanPreset === preset.id
+                        ? 'border-red-500 bg-red-500/20 text-white ring-1 ring-red-500/50'
+                        : 'border-white/10 bg-white/[0.04] text-[#CBD5E1] hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+
+              {selectedBanPreset === 'custom' && (
+                <div className="mt-3">
+                  <label className="block text-[11px] text-[#94A3B8] mb-1">Custom days:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={customDaysInput}
+                    onChange={(e) => setCustomDaysInput(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-white outline-none focus:border-red-500"
+                  />
+                </div>
+              )}
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBanPreset(selectedBanPreset === 'custom' ? '7' : 'custom')}
+                  className="text-[11px] text-[#4F8CFF] hover:underline"
+                >
+                  {selectedBanPreset === 'custom' ? 'Choose preset' : 'Or enter custom days'}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="block text-xs font-semibold text-[#CBD5E1] mb-1">
+                Ban Reason / Admin Note
+              </label>
+              <input
+                type="text"
+                value={adminBanReason}
+                onChange={(e) => setAdminBanReason(e.target.value)}
+                placeholder="E.g. Inappropriate conduct, harassment, spam..."
+                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-white placeholder:text-[#64748B] outline-none focus:border-red-500"
+              />
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-2.5 border-t border-white/10 pt-3">
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={isSubmittingBan}
+                onClick={() => setBanModal(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={isSubmittingBan}
+                onClick={() => void handleConfirmBan()}
+                className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20"
+              >
+                <Ban size={14} />
+                {isSubmittingBan ? 'Applying Ban...' : 'Confirm Ban & Notify Reporter'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   )
 }
