@@ -178,7 +178,7 @@ service cloud.firestore {
     match /support_tickets/{ticketId} {
       allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     match /reports/{reportId} {

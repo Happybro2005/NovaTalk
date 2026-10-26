@@ -126,12 +126,25 @@ export interface Notification {
   createdAt: Timestamp
 }
 
+export interface TicketReply {
+  id: string
+  senderId: string
+  senderName: string
+  senderRole: 'user' | 'admin'
+  message: string
+  createdAt: number
+}
+
 export interface SupportTicket {
   id: string
   userId: string
+  userName?: string
+  userEmail?: string
   subject: string
   message: string
-  status: 'open' | 'in_progress' | 'resolved'
+  status: 'open' | 'in_progress' | 'resolved' | 'closed'
+  canUserReply?: boolean
+  replies?: TicketReply[]
   createdAt: Timestamp
   updatedAt: Timestamp
 }

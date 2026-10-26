@@ -14,7 +14,10 @@ export function applyTheme(theme: UserSettings['theme']) {
     ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
     : theme
   document.documentElement.dataset.theme = resolvedTheme
+  document.documentElement.classList.remove('light', 'dark')
+  document.documentElement.classList.add(resolvedTheme)
   window.localStorage.setItem(themeStorageKey, theme)
+  window.dispatchEvent(new CustomEvent('novatalk-theme-change', { detail: { theme: resolvedTheme } }))
 }
 
 export function watchTheme(theme: UserSettings['theme']) {

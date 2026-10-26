@@ -71,8 +71,9 @@ export default function ConstellationField({ density = 90, className = '' }: Con
           const dy = a.y - b.y
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < linkDist) {
+            const isLight = document.documentElement.dataset.theme === 'light'
             const opacity = (1 - dist / linkDist) * 0.35
-            ctx.strokeStyle = `rgba(124, 158, 255, ${opacity})`
+            ctx.strokeStyle = isLight ? `rgba(79, 140, 255, ${opacity * 0.9})` : `rgba(124, 158, 255, ${opacity})`
             ctx.lineWidth = 0.6
             ctx.beginPath()
             ctx.moveTo(a.x, a.y)
@@ -82,11 +83,14 @@ export default function ConstellationField({ density = 90, className = '' }: Con
         }
       }
 
+      const isLightMode = document.documentElement.dataset.theme === 'light'
       for (const p of points) {
         const twinkleOpacity = 0.5 + Math.sin(p.twinkle) * 0.4
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255, 255, 255, ${twinkleOpacity})`
+        ctx.fillStyle = isLightMode
+          ? `rgba(79, 140, 255, ${twinkleOpacity * 0.75})`
+          : `rgba(255, 255, 255, ${twinkleOpacity})`
         ctx.fill()
       }
 

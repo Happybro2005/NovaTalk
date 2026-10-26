@@ -6,7 +6,7 @@ import AppShell from '../components/AppShell'
 import { Badge, Button, GlassCard, Eyebrow } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import type { UserSettings } from '../types/models'
-import { applyTheme } from '../utils/theme'
+import { applyTheme, getStoredTheme } from '../utils/theme'
 
 const defaultSettings: UserSettings = {
   notifications: { push: true, email: false, mentions: true },
@@ -25,9 +25,11 @@ export default function SettingsPage() {
       if (!currentUser) return
       const snap = await getDoc(doc(db, 'users', currentUser.uid, 'settings', 'default'))
       const saved = snap.exists() ? snap.data() as Partial<UserSettings> : {}
+      const activeTheme = saved.theme || getStoredTheme() || 'dark'
       const next: UserSettings = {
         ...defaultSettings,
         ...saved,
+        theme: activeTheme,
         notifications: { ...defaultSettings.notifications, ...saved.notifications },
         privacy: { ...defaultSettings.privacy, ...saved.privacy },
       }

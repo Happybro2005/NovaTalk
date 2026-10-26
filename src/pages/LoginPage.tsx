@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
@@ -6,6 +6,8 @@ import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
 import { Button, GlassCard, Input } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
+import { userService } from '../services/userService'
+import { auth } from '../firebase'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -14,8 +16,29 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const { login, loginWithGoogle } = useAuth()
+  const { currentUser, loading: authLoading, login, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
+
+  async function routeUser(uid: string) {
+    try {
+      const profile = await userService.getUserProfile(uid)
+      const role = profile?.role?.toString().trim().toLowerCase()
+      if (role === 'admin' || role === 'moderator') {
+        navigate('/admin/dashboard', { replace: true })
+        return
+      }
+    } catch {
+      // fallback to regular dashboard
+    }
+    navigate('/dashboard', { replace: true })
+  }
+
+  // If already authenticated and visiting /login, route appropriately
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      void routeUser(currentUser.uid)
+    }
+  }, [authLoading, currentUser])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,7 +47,12 @@ export default function LoginPage() {
       setError('')
       setLoading(true)
       await login(email, password)
-      navigate('/dashboard')
+      const signedInUser = auth.currentUser
+      if (signedInUser) {
+        await routeUser(signedInUser.uid)
+      } else {
+        navigate('/dashboard', { replace: true })
+      }
     } catch (err: any) {
       const messages: Record<string, string> = {
         'auth/invalid-credential': 'Invalid email or password.',
@@ -45,7 +73,12 @@ export default function LoginPage() {
       setError('')
       setLoading(true)
       await loginWithGoogle()
-      navigate('/dashboard')
+      const signedInUser = auth.currentUser
+      if (signedInUser) {
+        await routeUser(signedInUser.uid)
+      } else {
+        navigate('/dashboard', { replace: true })
+      }
     } catch (err: any) {
       setError(err?.message ?? 'Google sign-in failed.')
     } finally {

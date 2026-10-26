@@ -69,7 +69,7 @@ export default function DashboardPage() {
             if (conversation.type === 'group' || conversation.groupId) return true
             if (conversation.type !== 'dm' || conversation.messageRequestStatus === 'pending' || conversation.messageRequestStatus === 'declined') return false
             const otherId = conversation.participantIds.find((id) => id !== userId)
-            return Boolean(otherId && (friendIds.has(otherId) || conversation.messageRequestStatus === 'accepted'))
+            return Boolean(otherId && (friendIds.has(otherId) || conversation.messageRequestStatus === 'accepted' || !allUsersById.has(otherId)))
           })
           .sort((a, b) => {
           const aTime = (a.data().updatedAt?.toMillis?.() ?? 0) as number
@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
            if (!isGroup && otherId) {
             const otherUserDoc = allUsersById.get(otherId) ?? friendProfiles.find((friend) => friend.uid === otherId)
-            chatName = otherUserDoc?.novaName || otherUserDoc?.displayName || otherUserDoc?.username || 'User'
+            chatName = otherUserDoc?.novaName || otherUserDoc?.displayName || otherUserDoc?.username || 'Deleted User'
            }
 
           const participantSnapshot = await getDoc(doc(db, 'conversations', docSnap.id, 'participants', userId))
@@ -165,14 +165,21 @@ export default function DashboardPage() {
                   <Link key={c.id} to={c.isGroup && c.groupId ? `/groups/${c.groupId}/chat` : c.type === 'dm' ? `/messages/${c.id}` : '/study-match'} className={`flex items-center gap-3 rounded-xl p-2.5 transition ${c.unread ? 'bg-[#4F8CFF]/[0.08] ring-1 ring-[#4F8CFF]/70 shadow-[0_0_18px_rgba(79,140,255,0.22)]' : 'hover:bg-white/[0.05]'}`}>
                     <div className="relative">
                       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">
-                        {c.isGroup ? 'G' : c.name[0]?.toUpperCase()}
+                        {c.isGroup ? 'G' : c.name === 'Deleted User' ? 'D' : c.name[0]?.toUpperCase()}
                       </div>
                       {c.online && (
                         <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#0F172A] bg-[#10B981]" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-white">{c.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white truncate">{c.name}</span>
+                        {c.name === 'Deleted User' && (
+                          <span className="rounded bg-red-500/20 px-1.5 py-0.5 text-[10px] text-red-300 border border-red-500/30">
+                            Deleted
+                          </span>
+                        )}
+                      </div>
                       <div className="truncate text-xs text-[#CBD5E1]/70">{c.preview}</div>
                     </div>
                     <span className="shrink-0 text-xs text-[#CBD5E1]/50">{c.time}</span>

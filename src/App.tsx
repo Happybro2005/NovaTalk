@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
+import { userService } from './services/userService'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -18,6 +19,8 @@ import SupportPage from './pages/SupportPage'
 import StudyGroupsPage from './pages/StudyGroupsPage'
 import GroupChatPage from './pages/GroupChatPage'
 import DirectMessagePage from './pages/DirectMessagePage'
+import NotFoundPage from './pages/NotFoundPage'
+import ContextMenu from './components/ContextMenu'
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { currentUser, loading } = useAuth()
@@ -37,9 +40,49 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function AdminProtectedRoute({ children }: { children: ReactNode }) {
+  const { currentUser, loading } = useAuth()
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (loading) return
+    if (!currentUser) {
+      setIsAdmin(false)
+      return
+    }
+
+    let active = true
+    userService.getUserProfile(currentUser.uid).then((profile) => {
+      if (!active) return
+      const role = profile?.role?.toString().trim().toLowerCase()
+      setIsAdmin(role === 'admin' || role === 'moderator')
+    }).catch(() => {
+      if (active) setIsAdmin(false)
+    })
+
+    return () => { active = false }
+  }, [currentUser, loading])
+
+  if (loading || (currentUser && isAdmin === null)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#050816] text-sm text-[#CBD5E1]">
+        Loading...
+      </div>
+    )
+  }
+
+  // If not admin, show identical 404 "Page does not exist" without revealing admin route
+  if (!currentUser || !isAdmin) {
+    return <NotFoundPage />
+  }
+
+  return <>{children}</>
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <ContextMenu />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -61,7 +104,10 @@ export default function App() {
         <Route path="/messages/:conversationId" element={<ProtectedRoute><DirectMessagePage /></ProtectedRoute>} />
 
         <Route path="/admin" element={<AdminGate />} />
-        <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
+
+        {/* Catch-all for non-existent URLs on localhost and novatalk.pages.dev */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

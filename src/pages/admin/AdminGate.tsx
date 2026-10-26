@@ -1,61 +1,53 @@
-import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import AmbientBackdrop from '../../components/AmbientBackdrop'
-import { GlassCard } from '../../components/ui'
+import { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { userService } from '../../services/userService'
+import NotFoundPage from '../NotFoundPage'
 
 export default function AdminGate() {
   const { currentUser, loading } = useAuth()
   const navigate = useNavigate()
   const [checking, setChecking] = useState(true)
   const [allowed, setAllowed] = useState(false)
-  const [error, setError] = useState('')
+
+  const verifyRole = useCallback(async () => {
+    if (!currentUser) {
+      setChecking(false)
+      setAllowed(false)
+      return
+    }
+    setChecking(true)
+    try {
+      const profile = await userService.getUserProfile(currentUser.uid)
+      const normalizedRole = profile?.role?.toString().trim().toLowerCase()
+      const canManage = normalizedRole === 'admin' || normalizedRole === 'moderator'
+      setAllowed(canManage)
+      setChecking(false)
+      if (canManage) {
+        navigate('/admin/dashboard', { replace: true })
+      }
+    } catch {
+      setAllowed(false)
+      setChecking(false)
+    }
+  }, [currentUser, navigate])
 
   useEffect(() => {
     if (loading) return
-    if (!currentUser) {
-      setChecking(false)
-      return
-    }
+    void verifyRole()
+  }, [loading, verifyRole])
 
-    let active = true
-    userService.getUserProfile(currentUser.uid).then((profile) => {
-      if (!active) return
-      const canManage = profile?.role === 'admin' || profile?.role === 'moderator'
-      setAllowed(canManage)
-      setError(canManage ? '' : 'Your account does not have admin access.')
-      setChecking(false)
-      if (canManage) navigate('/admin/dashboard', { replace: true })
-    }).catch(() => {
-      if (!active) return
-      setError('Unable to verify your admin permissions.')
-      setChecking(false)
-    })
-
-    return () => {
-      active = false
-    }
-  }, [currentUser, loading, navigate])
-
-  if (!loading && !currentUser) return <Navigate to="/login" replace />
-  if (checking) {
+  if (loading || checking) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center px-4">
-        <AmbientBackdrop variant="aurora" />
-        <GlassCard strong className="w-full max-w-md p-8 text-center text-[#CBD5E1]">Checking admin permissions...</GlassCard>
+      <div className="flex min-h-screen items-center justify-center bg-[#050816] text-sm text-[#CBD5E1]">
+        Loading...
       </div>
     )
   }
+
   if (allowed) return null
 
-  return (
-    <div className="relative flex min-h-screen items-center justify-center px-4">
-      <AmbientBackdrop variant="aurora" />
-      <GlassCard strong className="w-full max-w-md p-8 text-center">
-        <h1 className="text-2xl font-semibold text-white">Admin access required</h1>
-        <p className="mt-3 text-sm text-[#CBD5E1]">{error}</p>
-      </GlassCard>
-    </div>
-  )
+  // If not admin, show standard 404 "Page does not exist" without disclosing admin route
+  return <NotFoundPage />
 }
+

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import {
@@ -13,6 +14,7 @@ import AmbientBackdrop from '../components/AmbientBackdrop'
 import Logo from '../components/Logo'
 import { Button, Eyebrow, MotionGlassCard, GlassCard } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
+import { userService } from '../services/userService'
 
 const stats = [
   { value: '50K+', label: 'new friendships sparked' },
@@ -80,6 +82,25 @@ const testimonials = [
 
 export default function LandingPage() {
   const { currentUser } = useAuth()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    if (!currentUser) {
+      setIsAdmin(false)
+      return
+    }
+    let active = true
+    userService.getUserProfile(currentUser.uid).then((profile) => {
+      if (!active) return
+      const role = profile?.role?.toString().trim().toLowerCase()
+      setIsAdmin(role === 'admin' || role === 'moderator')
+    }).catch(() => {
+      if (active) setIsAdmin(false)
+    })
+    return () => { active = false }
+  }, [currentUser])
+
+  const targetAppUrl = isAdmin ? '/admin/dashboard' : '/dashboard'
 
   return (
     <div className="relative min-h-screen font-[var(--font-body)]">
@@ -95,12 +116,20 @@ export default function LandingPage() {
             <a href="#community" className="transition-colors hover:text-white">Community</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">Log in</Button>
-            </Link>
-            <Link to="/register">
-              <Button size="sm">Get started</Button>
-            </Link>
+            {currentUser ? (
+              <Link to={targetAppUrl}>
+                <Button size="sm">{isAdmin ? 'Admin Dashboard' : 'Open app'}</Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Log in</Button>
+                </Link>
+                <Link to="/register">
+                  <Button size="sm">Get started</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -144,8 +173,8 @@ export default function LandingPage() {
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
             </Button>
           </Link>
-          <Link to={currentUser ? '/dashboard' : '/login'}>
-            <Button size="lg" variant="secondary">Explore the network</Button>
+          <Link to={currentUser ? targetAppUrl : '/login'}>
+            <Button size="lg" variant="secondary">{currentUser && isAdmin ? 'Admin Dashboard' : 'Explore the network'}</Button>
           </Link>
         </motion.div>
 

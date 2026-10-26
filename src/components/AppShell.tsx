@@ -13,6 +13,7 @@ import {
   X,
   Search,
   LogOut,
+  Shield,
 } from 'lucide-react'
 import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
 import Logo from './Logo'
@@ -37,8 +38,6 @@ const navItems = [
   { label: 'Groups', icon: UsersRound, to: '/groups' },
 ]
 
-const mobileNavItems = navItems.slice(0, 5)
-
 export default function AppShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [studyUnread, setStudyUnread] = useState(false)
@@ -49,7 +48,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [groupInvitationsUnread, setGroupInvitationsUnread] = useState(false)
   const [notificationUnread, setNotificationUnread] = useState(false)
   const [newMessageToast, setNewMessageToast] = useState<{ id: string; title: string; preview: string; link: string } | null>(null)
-  const [shellProfile, setShellProfile] = useState<{ novaName?: string; online?: boolean } | null>(null)
+  const [shellProfile, setShellProfile] = useState<{ novaName?: string; online?: boolean; role?: string } | null>(null)
   const [globalSearch, setGlobalSearch] = useState('')
   const [peopleResults, setPeopleResults] = useState<FriendSearchUser[]>([])
   const [groupResults, setGroupResults] = useState<Group[]>([])
@@ -117,8 +116,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
     const userRef = doc(db, 'users', currentUser.uid)
     const unsubscribe = onSnapshot(userRef, async (userSnap) => {
-      const userData = userSnap.data() as { lastOpenedStudyMatchAt?: { toMillis?: () => number }; novaName?: string; online?: boolean } | undefined
-      setShellProfile({ novaName: userData?.novaName, online: userData?.online ?? false })
+      const userData = userSnap.data() as { lastOpenedStudyMatchAt?: { toMillis?: () => number }; novaName?: string; online?: boolean; role?: string } | undefined
+      setShellProfile({ novaName: userData?.novaName, online: userData?.online ?? false, role: userData?.role })
       const openedAt = userData?.lastOpenedStudyMatchAt?.toMillis?.() ?? 0
       try {
         const conversationSnap = await getDocs(
@@ -307,15 +306,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer)
   }, [newMessageToast?.id])
 
+  const isAdmin = shellProfile?.role?.toString().trim().toLowerCase() === 'admin' || shellProfile?.role?.toString().trim().toLowerCase() === 'moderator'
+  const currentNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ label: 'Admin Panel', icon: Shield, to: '/admin' }] : []),
+  ]
+  const mobileNavItems = currentNavItems.slice(0, 5)
+
   return (
     <div className="relative min-h-screen">
       <AmbientBackdrop variant="quiet" />
-      <div className="flex">{/* existing content unchanged */}
+      <div className="flex">
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-white/[0.06] bg-[#050816]/60 backdrop-blur-xl lg:flex">
           <div className="px-6 py-6"><Logo /></div>
           <nav className="flex-1 space-y-1 px-3">
-            {navItems.map((item) => {
-              const active = location.pathname === item.to
+            {currentNavItems.map((item) => {
+              const active = location.pathname === item.to || (item.to === '/admin' && location.pathname.startsWith('/admin'))
               const unread = hasUnreadForPath(item.to)
               return (
                 <Link key={item.to} to={item.to} className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${active ? 'glass text-white glow-primary' : 'text-[#CBD5E1] hover:bg-white/[0.05] hover:text-white'} ${unread ? 'ring-1 ring-[#4F8CFF]/80 shadow-[0_0_14px_rgba(79,140,255,0.32)]' : ''}`}>
@@ -348,10 +354,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <button onClick={() => setSidebarOpen(false)} className="text-[#CBD5E1]"><X size={20} /></button>
               </div>
               <nav className="space-y-1">
-                {navItems.map((item) => {
+                {currentNavItems.map((item) => {
                   const unread = hasUnreadForPath(item.to)
+                  const active = location.pathname === item.to || (item.to === '/admin' && location.pathname.startsWith('/admin'))
                   return (
-                    <Link key={item.to} to={item.to} onClick={() => setSidebarOpen(false)} className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[#CBD5E1] hover:bg-white/[0.06] hover:text-white ${unread ? 'ring-1 ring-[#4F8CFF]/80 shadow-[0_0_14px_rgba(79,140,255,0.32)]' : ''}`}>
+                    <Link key={item.to} to={item.to} onClick={() => setSidebarOpen(false)} className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium ${active ? 'glass text-white' : 'text-[#CBD5E1] hover:bg-white/[0.06] hover:text-white'} ${unread ? 'ring-1 ring-[#4F8CFF]/80 shadow-[0_0_14px_rgba(79,140,255,0.32)]' : ''}`}>
                       <item.icon size={18} />
                       {item.label}
                     </Link>

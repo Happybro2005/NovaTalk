@@ -6,7 +6,7 @@ interface AmbientBackdropProps {
 
 export default function AmbientBackdrop({ variant = 'nebula' }: AmbientBackdropProps) {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816]">
+    <div className="ambient-backdrop pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050816] transition-colors duration-300">
       {variant !== 'quiet' && (
         <>
           <div

@@ -74,10 +74,12 @@ export default function DirectMessagePage() {
     return () => { active = false }
   }, [conversationId, currentUser])
 
-  const canChat = Boolean(conversation && conversation.messageRequestStatus !== 'pending' && conversation.messageRequestStatus !== 'declined')
+  const otherParticipantId = conversation?.participantIds?.find((id) => id !== currentUser?.uid)
+  const isDeletedUser = !loading && Boolean(otherParticipantId) && !otherUser
+  const canChat = Boolean(conversation && !isDeletedUser && conversation.messageRequestStatus !== 'pending' && conversation.messageRequestStatus !== 'declined')
 
   useEffect(() => {
-    if (!conversationId || !currentUser || !canChat || readReceiptsEnabled === null) return
+    if (!conversationId || !currentUser || (!canChat && !isDeletedUser) || readReceiptsEnabled === null) return
     lastMarkedMessageId.current = null
     return chatService.listenToMessages(conversationId, (items) => {
       setMessages(items)
@@ -91,7 +93,7 @@ export default function DirectMessagePage() {
     }, (listenError) => {
       setError(listenError.message || 'Unable to load messages.')
     })
-  }, [conversationId, currentUser?.uid, canChat, readReceiptsEnabled])
+  }, [conversationId, currentUser?.uid, canChat, isDeletedUser, readReceiptsEnabled])
 
   useEffect(() => {
     const otherUserId = conversation?.participantIds.find((id) => id !== currentUser?.uid)
@@ -125,7 +127,14 @@ export default function DirectMessagePage() {
         <div className="flex shrink-0 items-center gap-3">
           <Link to="/dashboard" aria-label="Back to dashboard" className="rounded-lg p-2 text-[#CBD5E1] hover:bg-white/[0.06] hover:text-white"><ArrowLeft size={18} /></Link>
           <div>
-            <h1 className="text-2xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>{otherUser?.novaName || 'Direct message'}</h1>
+            <h1 className="text-2xl font-semibold text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+              {otherUser?.novaName || (isDeletedUser ? 'Deleted User' : 'Direct message')}
+              {isDeletedUser && (
+                <span className="rounded px-2 py-0.5 text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/30">
+                  Deleted User
+                </span>
+              )}
+            </h1>
             {otherUser?.username && <p className="text-sm text-[#CBD5E1]">@{otherUser.username}</p>}
           </div>
         </div>
@@ -152,17 +161,23 @@ export default function DirectMessagePage() {
                 {messages.length === 0 ? <p className="text-sm text-[#CBD5E1]">No messages yet. Say hello.</p> : messages.map((item) => (
                   <div key={item.id} className={`flex w-full ${item.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
                     <div className={`w-fit max-w-[50%] rounded-xl p-3 text-sm text-white ${item.senderId === currentUser?.uid ? 'bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED]' : 'bg-white/[0.06]'}`}>
-                      <p className="mb-1 text-xs font-semibold text-[#BFDBFE]">{item.senderId === currentUser?.uid ? 'You' : item.senderNovaName}</p>
+                      <p className="mb-1 text-xs font-semibold text-[#BFDBFE]">{item.senderId === currentUser?.uid ? 'You' : (otherUser ? item.senderNovaName : 'Deleted User')}</p>
                       <p className="break-words">{item.text}</p>
                       {item.id === latestOutgoingMessage?.id && otherReadAt >= item.createdAt && item.createdAt > 0 && <p className="mt-1 text-right text-[10px] text-[#BFDBFE]/70">Seen</p>}
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 flex shrink-0 gap-3">
-                <Input value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void sendMessage() }} placeholder="Write a message..." />
-                <Button disabled={sending || !message.trim()} onClick={() => void sendMessage()}><Send size={16} /> Send</Button>
-              </div>
+              {isDeletedUser ? (
+                <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-center text-sm text-[#CBD5E1]">
+                  This user's account has been deleted. You can view previous messages, but new messages cannot be sent.
+                </div>
+              ) : (
+                <div className="mt-4 flex shrink-0 gap-3">
+                  <Input value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void sendMessage() }} placeholder="Write a message..." />
+                  <Button disabled={sending || !message.trim()} onClick={() => void sendMessage()}><Send size={16} /> Send</Button>
+                </div>
+              )}
             </>
           )}
         </GlassCard>
