@@ -438,6 +438,7 @@ export default function StrangerChatPage() {
                           data-message-text={msg.text}
                           data-message-sender-id={msg.senderId}
                           data-message-sender-name={msg.senderId === currentUser?.uid ? 'You' : (matchedUser?.novaName || 'Stranger')}
+                          data-is-self={msg.senderId === currentUser?.uid ? 'true' : 'false'}
                           data-chat-id={conversationId || ''}
                           data-chat-name="Stranger Chat"
                           onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: msg.id, x: event.clientX, y: event.clientY }) }}
@@ -507,27 +508,31 @@ export default function StrangerChatPage() {
           {isMine && !selectedMessage.deleted && <button type="button" onClick={() => void handleMessageAction('delete')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#FCA5A5] hover:bg-white/10">Delete</button>}
           <button type="button" onClick={() => void handleMessageAction('pinned')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.pinned ? 'Unpin' : 'Pin'}</button>
           <button type="button" onClick={() => void handleMessageAction('highlighted')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.highlighted ? 'Remove highlight' : 'Highlight'}</button>
-          <div className="my-1 border-t border-white/10" />
-          <button
-            type="button"
-            onClick={() => {
-              setMessageMenu(null)
-              window.dispatchEvent(
-                new CustomEvent('novatalk:open-report', {
-                  detail: {
-                    type: 'message',
-                    targetId: selectedMessage.id,
-                    text: selectedMessage.text,
-                    senderName: matchedUser?.novaName || 'Stranger',
-                    chatName: 'Stranger Chat',
-                  },
-                })
-              )
-            }}
-            className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
-          >
-            <Flag size={14} /> Report Message
-          </button>
+          {!isMine && (
+            <>
+              <div className="my-1 border-t border-white/10" />
+              <button
+                type="button"
+                onClick={() => {
+                  setMessageMenu(null)
+                  window.dispatchEvent(
+                    new CustomEvent('novatalk:open-report', {
+                      detail: {
+                        type: 'message',
+                        targetId: selectedMessage.id,
+                        text: selectedMessage.text,
+                        senderName: matchedUser?.novaName || 'Stranger',
+                        chatName: 'Stranger Chat',
+                      },
+                    })
+                  )
+                }}
+                className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
+              >
+                <Flag size={14} /> Report Message
+              </button>
+            </>
+          )}
         </> })()}
       </div>}
 

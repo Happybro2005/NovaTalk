@@ -19,6 +19,10 @@ export const reportService = {
     details,
     contentPreview,
   }: CreateReportParams): Promise<string> {
+    if (reporterId && targetId && reporterId === targetId) {
+      throw new Error('Self chat or your own messages cannot be reported.')
+    }
+
     const formattedReason = [
       reason,
       details?.trim() ? `Details: ${details.trim()}` : null,

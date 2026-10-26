@@ -225,6 +225,7 @@ export default function GroupChatPage() {
                 data-message-text={item.text}
                 data-message-sender-id={item.senderId}
                 data-message-sender-name={item.senderId === currentUser?.uid ? 'You' : item.senderNovaName}
+                data-is-self={item.senderId === currentUser?.uid ? 'true' : 'false'}
                 data-chat-id={groupId || ''}
                 data-chat-name={group?.name || 'Group Chat'}
                 onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: item.id, x: event.clientX, y: event.clientY }) }}
@@ -252,27 +253,31 @@ export default function GroupChatPage() {
           {isMine && !selectedMessage.deleted && <button type="button" onClick={() => void handleMessageAction('delete')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#FCA5A5] hover:bg-white/10">Delete</button>}
           <button type="button" onClick={() => void handleMessageAction('pinned')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.pinned ? 'Unpin' : 'Pin'}</button>
           <button type="button" onClick={() => void handleMessageAction('highlighted')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.highlighted ? 'Remove highlight' : 'Highlight'}</button>
-          <div className="my-1 border-t border-white/10" />
-          <button
-            type="button"
-            onClick={() => {
-              setMessageMenu(null)
-              window.dispatchEvent(
-                new CustomEvent('novatalk:open-report', {
-                  detail: {
-                    type: 'message',
-                    targetId: selectedMessage.id,
-                    text: selectedMessage.text,
-                    senderName: selectedMessage.senderNovaName,
-                    chatName: group?.name || 'Group Chat',
-                  },
-                })
-              )
-            }}
-            className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
-          >
-            <Flag size={14} /> Report Message
-          </button>
+          {!isMine && (
+            <>
+              <div className="my-1 border-t border-white/10" />
+              <button
+                type="button"
+                onClick={() => {
+                  setMessageMenu(null)
+                  window.dispatchEvent(
+                    new CustomEvent('novatalk:open-report', {
+                      detail: {
+                        type: 'message',
+                        targetId: selectedMessage.id,
+                        text: selectedMessage.text,
+                        senderName: selectedMessage.senderNovaName,
+                        chatName: group?.name || 'Group Chat',
+                      },
+                    })
+                  )
+                }}
+                className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
+              >
+                <Flag size={14} /> Report Message
+              </button>
+            </>
+          )}
         </> })()}
       </div>}
 

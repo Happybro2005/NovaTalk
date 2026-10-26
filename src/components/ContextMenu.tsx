@@ -53,8 +53,10 @@ interface MenuState {
   messageId: string
   messageSenderId: string
   messageSenderName: string
+  isSelfMessage: boolean
   chatId: string
   chatName: string
+  isSelfChat: boolean
   isChatRoute: boolean
 }
 
@@ -107,8 +109,10 @@ export default function ContextMenu() {
     messageId: '',
     messageSenderId: '',
     messageSenderName: '',
+    isSelfMessage: false,
     chatId: '',
     chatName: '',
+    isSelfChat: false,
     isChatRoute: false,
   })
 
@@ -138,8 +142,14 @@ export default function ContextMenu() {
         text?: string
         senderName?: string
         chatName?: string
+        isSelf?: boolean
       }>
       if (customEvent.detail) {
+        if (customEvent.detail.isSelf) {
+          showToast('You cannot report your own message or self-chat.')
+          return
+        }
+
         setReportModal({
           isOpen: true,
           type: customEvent.detail.type || 'message',
@@ -199,6 +209,11 @@ export default function ContextMenu() {
         : ''
       const messageSenderId = messageEl?.getAttribute('data-message-sender-id') || ''
       const messageSenderName = messageEl?.getAttribute('data-message-sender-name') || ''
+      const isSelfMsgAttr = messageEl?.getAttribute('data-is-self') === 'true'
+      const isSelfMessage = Boolean(
+        isSelfMsgAttr ||
+        (currentUser && messageSenderId && messageSenderId === currentUser.uid)
+      )
 
       // 5. Chat card / container / route detection
       const chatEl = target.closest('[data-chat-card], [data-chat-container], [data-chat-id]') as HTMLElement | null
@@ -218,6 +233,13 @@ export default function ContextMenu() {
 
       const chatId = chatEl?.getAttribute('data-chat-id') || chatRouteId || ''
       const chatName = chatEl?.getAttribute('data-chat-name') || ''
+      const isSelfChatAttr =
+        chatEl?.getAttribute('data-is-self-chat') === 'true' ||
+        target.closest('[data-is-self-chat="true"]') !== null
+      const isSelfChat = Boolean(
+        isSelfChatAttr ||
+        (currentUser && chatId && chatId === currentUser.uid)
+      )
 
       // Determine context priority
       let contextType: ContextType = 'default'
@@ -255,8 +277,10 @@ export default function ContextMenu() {
         messageId,
         messageSenderId,
         messageSenderName,
+        isSelfMessage,
         chatId,
         chatName,
+        isSelfChat,
         isChatRoute,
       })
     }
@@ -290,7 +314,7 @@ export default function ContextMenu() {
       window.removeEventListener('resize', closeMenu)
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [reportModal?.isOpen])
+  }, [currentUser, reportModal?.isOpen])
 
   function showToast(text: string) {
     setCopiedNotification(text)
@@ -310,6 +334,11 @@ export default function ContextMenu() {
     }
 
     if (type === 'message') {
+      if (menu.isSelfMessage) {
+        showToast('You cannot report your own message.')
+        return
+      }
+
       setReportModal({
         isOpen: true,
         type: 'message',
@@ -319,6 +348,11 @@ export default function ContextMenu() {
         chatName: menu.chatName,
       })
     } else {
+      if (menu.isSelfChat) {
+        showToast('Self chat cannot be reported.')
+        return
+      }
+
       setReportModal({
         isOpen: true,
         type: 'chat',
@@ -788,14 +822,19 @@ export default function ContextMenu() {
                 Message Actions
               </div>
               <MenuItem onClick={handleCopyMessage} icon={Copy} label="Copy Message Text" />
-              <MenuItem
-                onClick={() => handleOpenReport('message')}
-                icon={Flag}
-                label="Report Message"
-                highlightDanger
-              />
 
-              {(menu.chatId || menu.isChatRoute) && (
+              {/* Self messages cannot be reported */}
+              {!menu.isSelfMessage && (
+                <MenuItem
+                  onClick={() => handleOpenReport('message')}
+                  icon={Flag}
+                  label="Report Message"
+                  highlightDanger
+                />
+              )}
+
+              {/* Self chats cannot be reported */}
+              {!menu.isSelfChat && (menu.chatId || menu.isChatRoute) && (
                 <MenuItem
                   onClick={() => handleOpenReport('chat')}
                   icon={ShieldAlert}
@@ -827,8 +866,8 @@ export default function ContextMenu() {
             </div>
           )}
 
-          {/* Context: Inside a Chat / Clicked on Chat Card */}
-          {menu.contextType === 'chat' && (
+          {/* Context: Inside a Chat / Clicked on Chat Card (Hidden if self chat) */}
+          {menu.contextType === 'chat' && !menu.isSelfChat && (
             <div>
               <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
                 Chat Actions
@@ -842,8 +881,8 @@ export default function ContextMenu() {
             </div>
           )}
 
-          {/* If on a chat route but clicked default page area, still provide Report This Chat */}
-          {menu.contextType === 'default' && menu.isChatRoute && (
+          {/* If on a chat route but clicked default page area, still provide Report This Chat (Hidden if self chat) */}
+          {menu.contextType === 'default' && menu.isChatRoute && !menu.isSelfChat && (
             <div>
               <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
                 Chat Actions

@@ -95,16 +95,22 @@ export default function DirectMessagePage() {
     })
   }, [conversationId, currentUser?.uid, canChat, isDeletedUser, readReceiptsEnabled])
 
+  const otherUserId = conversation?.participantIds.find((id) => id !== currentUser?.uid)
+
   useEffect(() => {
-    const otherUserId = conversation?.participantIds.find((id) => id !== currentUser?.uid)
     if (!conversationId || !currentUser || !canChat || !otherUserId) return
     return chatService.listenToParticipantRead(conversationId, otherUserId, setOtherReadAt, (readError) => {
       setError(readError.message || 'Unable to load read receipt state.')
     })
-  }, [conversationId, conversation?.participantIds, currentUser?.uid, canChat])
+  }, [conversationId, otherUserId, currentUser?.uid, canChat])
 
   const outgoingMessages = messages.filter((item) => item.senderId === currentUser?.uid)
   const latestOutgoingMessage = outgoingMessages[outgoingMessages.length - 1]
+  const isSelfChat = Boolean(
+    currentUser &&
+    conversation &&
+    (!otherUserId || otherUserId === currentUser.uid || conversation.participantIds.every((id) => id === currentUser.uid))
+  )
 
   async function sendMessage() {
     const trimmed = message.trim()
@@ -160,7 +166,8 @@ export default function DirectMessagePage() {
               <div
                 data-chat-container="true"
                 data-chat-id={conversationId || ''}
-                data-chat-name={otherUser?.novaName || 'Direct Message'}
+                data-chat-name={otherUser?.novaName || (isSelfChat ? 'You' : 'Direct Message')}
+                data-is-self-chat={isSelfChat ? 'true' : 'false'}
                 className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4"
               >
                 {messages.length === 0 ? <p className="text-sm text-[#CBD5E1]">No messages yet. Say hello.</p> : messages.map((item) => (
@@ -171,8 +178,10 @@ export default function DirectMessagePage() {
                       data-message-text={item.text}
                       data-message-sender-id={item.senderId}
                       data-message-sender-name={item.senderId === currentUser?.uid ? 'You' : (otherUser ? item.senderNovaName : 'Deleted User')}
+                      data-is-self={item.senderId === currentUser?.uid ? 'true' : 'false'}
                       data-chat-id={conversationId || ''}
-                      data-chat-name={otherUser?.novaName || 'Direct Message'}
+                      data-chat-name={otherUser?.novaName || (isSelfChat ? 'You' : 'Direct Message')}
+                      data-is-self-chat={isSelfChat ? 'true' : 'false'}
                       className={`w-fit max-w-[50%] rounded-xl p-3 text-sm text-white ${item.senderId === currentUser?.uid ? 'bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED]' : 'bg-white/[0.06]'}`}
                     >
                       <p className="mb-1 text-xs font-semibold text-[#BFDBFE]">{item.senderId === currentUser?.uid ? 'You' : (otherUser ? item.senderNovaName : 'Deleted User')}</p>

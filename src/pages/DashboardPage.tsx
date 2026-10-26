@@ -18,7 +18,7 @@ const quickActions = [
 
 export default function DashboardPage() {
   const { currentUser } = useAuth()
-  const [recentChats, setRecentChats] = useState<{ id: string; type: string; name: string; groupId?: string; isGroup: boolean; preview: string; time: string; online: boolean; unread: boolean }[]>([])
+  const [recentChats, setRecentChats] = useState<{ id: string; type: string; name: string; groupId?: string; isGroup: boolean; isSelfChat?: boolean; preview: string; time: string; online: boolean; unread: boolean }[]>([])
   const [friends, setFriends] = useState<User[]>([])
   const [currentNovaName, setCurrentNovaName] = useState('')
   const [messageTarget, setMessageTarget] = useState<User | null>(null)
@@ -79,11 +79,14 @@ export default function DashboardPage() {
           const conv = docSnap.data() as Conversation
            const isGroup = conv.type === 'group' || Boolean(conv.groupId)
            const otherId = conv.participantIds.find(id => id !== currentUser?.uid)
+           const isSelfChat = !isGroup && (!otherId || otherId === currentUser?.uid)
            let chatName = conv.name || 'Unknown'
 
            if (!isGroup && otherId) {
             const otherUserDoc = allUsersById.get(otherId) ?? friendProfiles.find((friend) => friend.uid === otherId)
             chatName = otherUserDoc?.novaName || otherUserDoc?.displayName || otherUserDoc?.username || 'Deleted User'
+           } else if (isSelfChat) {
+            chatName = 'Note to Self'
            }
 
           const participantSnapshot = await getDoc(doc(db, 'conversations', docSnap.id, 'participants', userId))
@@ -97,6 +100,7 @@ export default function DashboardPage() {
             name: chatName,
             groupId: conv.groupId,
             isGroup,
+            isSelfChat,
             preview: conv.lastMessage?.previewText || 'Started a conversation',
             time: 'Recently',
             online: false,
@@ -168,6 +172,7 @@ export default function DashboardPage() {
                     data-chat-card="true"
                     data-chat-id={c.id}
                     data-chat-name={c.name}
+                    data-is-self-chat={c.isSelfChat ? 'true' : 'false'}
                     className={`flex items-center gap-3 rounded-xl p-2.5 transition ${c.unread ? 'bg-[#4F8CFF]/[0.08] ring-1 ring-[#4F8CFF]/70 shadow-[0_0_18px_rgba(79,140,255,0.22)]' : 'hover:bg-white/[0.05]'}`}
                   >
                     <div className="relative">
