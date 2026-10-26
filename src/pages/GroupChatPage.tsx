@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Send, Shield, UserMinus, UserPlus, Users } from 'lucide-react'
+import { ArrowLeft, Flag, Send, Shield, UserMinus, UserPlus, Users } from 'lucide-react'
 import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore'
 import AppShell from '../components/AppShell'
 import { Button, GlassCard, Input, Eyebrow } from '../components/ui'
@@ -211,10 +211,25 @@ export default function GroupChatPage() {
         {error && <p className="mt-5 shrink-0 text-sm text-red-300">{error}</p>}
 
         <GlassCard strong className="mt-6 flex min-h-0 flex-1 flex-col p-4 sm:p-6">
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div
+            data-chat-container="true"
+            data-chat-id={groupId || ''}
+            data-chat-name={group?.name || 'Group Chat'}
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-black/20 p-4"
+          >
           {messages.length === 0 ? <p className="text-sm text-[#CBD5E1]">No messages yet. Start the conversation.</p> : messages.map((item) => (
             <div key={item.id} className={`flex w-full ${item.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
-              <div onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: item.id, x: event.clientX, y: event.clientY }) }} className={`relative w-fit max-w-[50%] rounded-xl p-3 text-sm text-white ${item.senderId === currentUser?.uid ? 'bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED]' : 'bg-white/[0.06]'} ${item.highlighted ? 'ring-2 ring-[#F59E0B]' : ''}`}>
+              <div
+                data-message-bubble="true"
+                data-message-id={item.id}
+                data-message-text={item.text}
+                data-message-sender-id={item.senderId}
+                data-message-sender-name={item.senderId === currentUser?.uid ? 'You' : item.senderNovaName}
+                data-chat-id={groupId || ''}
+                data-chat-name={group?.name || 'Group Chat'}
+                onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: item.id, x: event.clientX, y: event.clientY }) }}
+                className={`relative w-fit max-w-[50%] rounded-xl p-3 text-sm text-white ${item.senderId === currentUser?.uid ? 'bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED]' : 'bg-white/[0.06]'} ${item.highlighted ? 'ring-2 ring-[#F59E0B]' : ''}`}
+              >
                 <div className="mb-1 text-xs font-semibold text-[#93C5FD]">{item.senderId === currentUser?.uid ? 'You' : item.senderNovaName}</div>
                 <div className="break-words">{item.text} {item.edited && !item.deleted && <span className="text-xs text-[#CBD5E1]">(edited)</span>}</div>
                 {item.id === latestOutgoingMessage?.id && latestReadCount > 0 && <div className="mt-1 text-right text-[10px] text-[#BFDBFE]/70">Seen by {latestReadCount}</div>}
@@ -237,6 +252,27 @@ export default function GroupChatPage() {
           {isMine && !selectedMessage.deleted && <button type="button" onClick={() => void handleMessageAction('delete')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#FCA5A5] hover:bg-white/10">Delete</button>}
           <button type="button" onClick={() => void handleMessageAction('pinned')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.pinned ? 'Unpin' : 'Pin'}</button>
           <button type="button" onClick={() => void handleMessageAction('highlighted')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.highlighted ? 'Remove highlight' : 'Highlight'}</button>
+          <div className="my-1 border-t border-white/10" />
+          <button
+            type="button"
+            onClick={() => {
+              setMessageMenu(null)
+              window.dispatchEvent(
+                new CustomEvent('novatalk:open-report', {
+                  detail: {
+                    type: 'message',
+                    targetId: selectedMessage.id,
+                    text: selectedMessage.text,
+                    senderName: selectedMessage.senderNovaName,
+                    chatName: group?.name || 'Group Chat',
+                  },
+                })
+              )
+            }}
+            className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
+          >
+            <Flag size={14} /> Report Message
+          </button>
         </> })()}
       </div>}
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -8,9 +9,11 @@ import {
   Clipboard,
   Copy,
   ExternalLink,
+  Flag,
   Home,
   LifeBuoy,
   Link as LinkIcon,
+  Loader2,
   Maximize2,
   MessageSquare,
   Moon,
@@ -19,19 +22,22 @@ import {
   Search,
   Settings,
   Share2,
+  ShieldAlert,
   ShieldCheck,
   Sun,
   Trash2,
   Users,
   UsersRound,
+  X,
 } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import { userService } from '../services/userService'
+import { reportService } from '../services/reportService'
 import { applyTheme } from '../utils/theme'
 
-type ContextType = 'input' | 'selection' | 'link' | 'image' | 'message' | 'default'
+type ContextType = 'input' | 'selection' | 'link' | 'image' | 'message' | 'chat' | 'default'
 
 interface MenuState {
   isOpen: boolean
@@ -44,9 +50,33 @@ interface MenuState {
   linkText: string
   imgSrc: string
   messageText: string
+  messageId: string
+  messageSenderId: string
+  messageSenderName: string
+  chatId: string
+  chatName: string
+  isChatRoute: boolean
+}
+
+interface ReportModalData {
+  isOpen: boolean
+  type: 'message' | 'chat'
+  targetId: string
+  text?: string
+  senderName?: string
+  chatName?: string
 }
 
 const EMOJI_LIST = ['😀', '👍', '❤️', '🔥', '🚀', '💡', '🎉', '👏']
+
+const REPORT_REASONS = [
+  { id: 'harassment', label: 'Harassment or Bullying', desc: 'Disrespectful, threatening, or targeted behavior' },
+  { id: 'spam', label: 'Spam, Scam, or Phishing', desc: 'Fraudulent links, promotions, or impersonation' },
+  { id: 'hate', label: 'Hate Speech or Discrimination', desc: 'Attacking protected groups or hate symbols' },
+  { id: 'inappropriate', label: 'Inappropriate Content', desc: 'Explicit, NSFW, or unsafe media/text' },
+  { id: 'danger', label: 'Violence or Physical Harm', desc: 'Self-harm or threats of real-world harm' },
+  { id: 'other', label: 'Other Policy Violation', desc: 'Any other violation of NovaTalk rules' },
+]
 
 export default function ContextMenu() {
   const navigate = useNavigate()
@@ -55,6 +85,13 @@ export default function ContextMenu() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // Report Modal state
+  const [reportModal, setReportModal] = useState<ReportModalData | null>(null)
+  const [selectedReason, setSelectedReason] = useState<string>('')
+  const [reportDetails, setReportDetails] = useState<string>('')
+  const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false)
+  const [reportError, setReportError] = useState<string>('')
 
   const [menu, setMenu] = useState<MenuState>({
     isOpen: false,
@@ -67,6 +104,12 @@ export default function ContextMenu() {
     linkText: '',
     imgSrc: '',
     messageText: '',
+    messageId: '',
+    messageSenderId: '',
+    messageSenderName: '',
+    chatId: '',
+    chatName: '',
+    isChatRoute: false,
   })
 
   // Check admin status for contextual admin tools
@@ -85,6 +128,35 @@ export default function ContextMenu() {
     })
     return () => { active = false }
   }, [currentUser])
+
+  // Custom event listener so other components can programmatically trigger the report dialog
+  useEffect(() => {
+    const handleOpenReportEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        type?: 'message' | 'chat'
+        targetId?: string
+        text?: string
+        senderName?: string
+        chatName?: string
+      }>
+      if (customEvent.detail) {
+        setReportModal({
+          isOpen: true,
+          type: customEvent.detail.type || 'message',
+          targetId: customEvent.detail.targetId || 'unknown',
+          text: customEvent.detail.text,
+          senderName: customEvent.detail.senderName,
+          chatName: customEvent.detail.chatName,
+        })
+        setSelectedReason('')
+        setReportDetails('')
+        setReportError('')
+      }
+    }
+
+    window.addEventListener('novatalk:open-report', handleOpenReportEvent)
+    return () => window.removeEventListener('novatalk:open-report', handleOpenReportEvent)
+  }, [])
 
   // Global right-click handler replacing default browser menu everywhere
   useEffect(() => {
@@ -118,11 +190,34 @@ export default function ContextMenu() {
 
       // 4. Chat message / message bubble detection
       const messageEl = target.closest(
-        '[data-message-text], .message-bubble, div[class*="rounded-xl p-3 text-sm"], div[class*="rounded-xl border border-white/10 bg-white/[0.04] p-4"]'
+        '[data-message-bubble], [data-message-id], [data-message-text], .message-bubble, div[class*="rounded-xl p-3 text-sm"], div[class*="rounded-xl border border-white/10 bg-white/[0.04] p-4"]'
       ) as HTMLElement | null
+
+      const messageId = messageEl?.getAttribute('data-message-id') || ''
       const messageText = messageEl
         ? messageEl.getAttribute('data-message-text') || messageEl.innerText || ''
         : ''
+      const messageSenderId = messageEl?.getAttribute('data-message-sender-id') || ''
+      const messageSenderName = messageEl?.getAttribute('data-message-sender-name') || ''
+
+      // 5. Chat card / container / route detection
+      const chatEl = target.closest('[data-chat-card], [data-chat-container], [data-chat-id]') as HTMLElement | null
+      const currentPath = window.location.pathname
+      const isChatRoute = Boolean(
+        currentPath.startsWith('/messages/') ||
+        currentPath.startsWith('/groups/') ||
+        currentPath === '/stranger-chat' ||
+        currentPath === '/study-match'
+      )
+
+      const chatRouteId = currentPath.startsWith('/messages/')
+        ? currentPath.replace('/messages/', '')
+        : currentPath.startsWith('/groups/')
+        ? currentPath.split('/')[2]
+        : ''
+
+      const chatId = chatEl?.getAttribute('data-chat-id') || chatRouteId || ''
+      const chatName = chatEl?.getAttribute('data-chat-name') || ''
 
       // Determine context priority
       let contextType: ContextType = 'default'
@@ -134,13 +229,15 @@ export default function ContextMenu() {
         contextType = 'link'
       } else if (imgSrc) {
         contextType = 'image'
-      } else if (messageText && messageText.length > 3) {
+      } else if (messageText && messageText.length > 0) {
         contextType = 'message'
+      } else if (chatId || isChatRoute) {
+        contextType = 'chat'
       }
 
       // Calculate position with viewport boundary clamping
       const menuWidth = 240
-      const menuHeight = 360
+      const menuHeight = 390
       const posX = Math.max(10, Math.min(e.clientX, window.innerWidth - menuWidth - 12))
       const posY = Math.max(10, Math.min(e.clientY, window.innerHeight - menuHeight - 12))
 
@@ -155,6 +252,12 @@ export default function ContextMenu() {
         linkText,
         imgSrc,
         messageText,
+        messageId,
+        messageSenderId,
+        messageSenderName,
+        chatId,
+        chatName,
+        isChatRoute,
       })
     }
 
@@ -166,7 +269,12 @@ export default function ContextMenu() {
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeMenu()
+      if (e.key === 'Escape') {
+        closeMenu()
+        if (reportModal?.isOpen) {
+          setReportModal(null)
+        }
+      }
     }
 
     window.addEventListener('contextmenu', handleContextMenu, { capture: true })
@@ -182,15 +290,80 @@ export default function ContextMenu() {
       window.removeEventListener('resize', closeMenu)
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [reportModal?.isOpen])
 
   function showToast(text: string) {
     setCopiedNotification(text)
-    setTimeout(() => setCopiedNotification(null), 2200)
+    setTimeout(() => setCopiedNotification(null), 2500)
   }
 
   function handleClose() {
     setMenu((prev) => ({ ...prev, isOpen: false }))
+  }
+
+  // Open the report modal with populated context
+  function handleOpenReport(type: 'message' | 'chat') {
+    handleClose()
+    if (!currentUser) {
+      showToast('Please sign in to submit a report.')
+      return
+    }
+
+    if (type === 'message') {
+      setReportModal({
+        isOpen: true,
+        type: 'message',
+        targetId: menu.messageId || 'message',
+        text: menu.messageText,
+        senderName: menu.messageSenderName,
+        chatName: menu.chatName,
+      })
+    } else {
+      setReportModal({
+        isOpen: true,
+        type: 'chat',
+        targetId: menu.chatId || 'chat',
+        chatName: menu.chatName,
+      })
+    }
+    setSelectedReason('')
+    setReportDetails('')
+    setReportError('')
+  }
+
+  async function handleSubmitReport(e: React.FormEvent) {
+    e.preventDefault()
+    if (!currentUser) {
+      setReportError('You must be signed in to submit a report.')
+      return
+    }
+    if (!selectedReason) {
+      setReportError('Please select a reason for reporting.')
+      return
+    }
+
+    try {
+      setIsSubmittingReport(true)
+      setReportError('')
+
+      const reasonLabel = REPORT_REASONS.find((r) => r.id === selectedReason)?.label || selectedReason
+
+      await reportService.submitReport({
+        reporterId: currentUser.uid,
+        targetType: reportModal?.type === 'message' ? 'message' : 'user',
+        targetId: reportModal?.targetId || 'unknown',
+        reason: reasonLabel,
+        details: reportDetails,
+        contentPreview: reportModal?.text,
+      })
+
+      setReportModal(null)
+      showToast('Report submitted. Our moderation team will review it.')
+    } catch (err) {
+      setReportError(err instanceof Error ? err.message : 'Unable to submit report. Please try again.')
+    } finally {
+      setIsSubmittingReport(false)
+    }
   }
 
   // Input editing helpers
@@ -382,21 +555,9 @@ export default function ContextMenu() {
     showToast(`Switched to ${nextTheme} theme`)
   }
 
-  if (!menu.isOpen) {
-    return (
-      <>
-        {copiedNotification && (
-          <div className="fixed bottom-6 right-6 z-[9999999] flex items-center gap-2 rounded-xl border border-white/20 bg-[#0B0F19]/95 px-4 py-2.5 text-xs font-medium text-white shadow-2xl backdrop-blur-md animate-fade-in">
-            <Check size={14} className="text-emerald-400" />
-            <span>{copiedNotification}</span>
-          </div>
-        )}
-      </>
-    )
-  }
-
   return (
     <>
+      {/* Toast Notification */}
       {copiedNotification && (
         <div className="fixed bottom-6 right-6 z-[9999999] flex items-center gap-2 rounded-xl border border-white/20 bg-[#0B0F19]/95 px-4 py-2.5 text-xs font-medium text-white shadow-2xl backdrop-blur-md animate-fade-in">
           <Check size={14} className="text-emerald-400" />
@@ -404,219 +565,411 @@ export default function ContextMenu() {
         </div>
       )}
 
-      <div
-        ref={menuRef}
-        style={{ left: `${menu.x}px`, top: `${menu.y}px` }}
-        className="context-menu-box fixed z-[999999] w-[235px] max-h-[88vh] overflow-y-auto rounded-2xl border border-white/15 bg-[#0B0F19]/95 p-1.5 text-xs text-[#CBD5E1] shadow-2xl backdrop-blur-2xl ring-1 ring-black/50 select-none animate-in fade-in zoom-in-95 duration-100"
-      >
-        {/* Context: Text Input Field */}
-        {menu.contextType === 'input' && (
-          <div>
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-              Text Editing
+      {/* Reporting Modal */}
+      {reportModal?.isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="report-dialog-title"
+          className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-150"
+        >
+          <div className="relative w-full max-w-md rounded-2xl border border-white/15 bg-[#0F1420] p-6 text-white shadow-2xl ring-1 ring-white/10 animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/15 text-red-400 shadow-inner">
+                  <Flag size={20} />
+                </div>
+                <div>
+                  <h2 id="report-dialog-title" className="text-lg font-semibold text-white">
+                    {reportModal.type === 'message' ? 'Report Message' : 'Report Chat'}
+                  </h2>
+                  <p className="text-xs text-[#94A3B8]">
+                    Help keep NovaTalk safe. Reports are sent directly to moderators.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReportModal(null)}
+                className="rounded-lg p-1.5 text-[#94A3B8] hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Close dialog"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <MenuItem onClick={handleInputCut} icon={Scissors} label="Cut" shortcut="Ctrl+X" />
-            <MenuItem onClick={handleInputCopy} icon={Copy} label="Copy" shortcut="Ctrl+C" />
-            <MenuItem onClick={() => void handleInputPaste()} icon={Clipboard} label="Paste" shortcut="Ctrl+V" />
-            <MenuItem onClick={handleInputSelectAll} icon={CheckSquare} label="Select All" shortcut="Ctrl+A" />
-            <MenuItem onClick={handleInputClear} icon={Trash2} label="Clear Field" />
 
-            <div className="my-1.5 border-t border-white/10" />
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-              Quick Emojis
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-1 px-1.5 py-1">
-              {EMOJI_LIST.map((emoji) => (
+            {/* Target Preview */}
+            {reportModal.type === 'message' && reportModal.text && (
+              <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs">
+                <div className="mb-1 font-semibold text-[#93C5FD]">
+                  {reportModal.senderName ? `Message by ${reportModal.senderName}:` : 'Reported message:'}
+                </div>
+                <p className="line-clamp-3 text-[#CBD5E1] italic">
+                  "{reportModal.text}"
+                </p>
+              </div>
+            )}
+
+            {reportModal.type === 'chat' && reportModal.chatName && (
+              <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs">
+                <div className="mb-1 font-semibold text-[#93C5FD]">Target Conversation:</div>
+                <p className="text-[#CBD5E1] font-medium">{reportModal.chatName}</p>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={(e) => void handleSubmitReport(e)} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#CBD5E1] mb-2 uppercase tracking-wider">
+                  Select a reason <span className="text-red-400">*</span>
+                </label>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {REPORT_REASONS.map((reason) => {
+                    const isSelected = selectedReason === reason.id
+                    return (
+                      <button
+                        key={reason.id}
+                        type="button"
+                        onClick={() => setSelectedReason(reason.id)}
+                        className={`w-full flex items-start gap-2.5 rounded-xl border p-2.5 text-left text-xs transition-all ${
+                          isSelected
+                            ? 'border-red-500/50 bg-red-500/15 text-white ring-1 ring-red-500/40'
+                            : 'border-white/10 bg-white/[0.03] text-[#CBD5E1] hover:border-white/20 hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <div
+                          className={`mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border ${
+                            isSelected ? 'border-red-400 bg-red-400' : 'border-white/30'
+                          }`}
+                        >
+                          {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-white">{reason.label}</p>
+                          <p className="text-[11px] text-[#94A3B8]">{reason.desc}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="report-details" className="block text-xs font-semibold text-[#CBD5E1] mb-1.5">
+                  Additional details <span className="text-[#64748B] font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="report-details"
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Provide context or explanation for moderators..."
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.05] p-2.5 text-xs text-white placeholder:text-[#64748B] outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/30"
+                />
+              </div>
+
+              {reportError && (
+                <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300">
+                  <AlertTriangle size={14} className="shrink-0" />
+                  <span>{reportError}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-white/10">
                 <button
-                  key={emoji}
                   type="button"
-                  onClick={() => handleInsertEmoji(emoji)}
-                  className="flex h-6 w-6 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-sm"
+                  onClick={() => setReportModal(null)}
+                  disabled={isSubmittingReport}
+                  className="rounded-xl px-4 py-2 text-xs font-medium text-[#CBD5E1] hover:bg-white/10 transition-colors"
                 >
-                  {emoji}
+                  Cancel
                 </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Context: Selected Text on Page */}
-        {menu.contextType === 'selection' && (
-          <div>
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-              Selected Text
-            </div>
-            <MenuItem onClick={handleCopySelection} icon={Copy} label="Copy Selection" shortcut="Ctrl+C" />
-            <MenuItem onClick={handleSearchWeb} icon={Search} label={`Search web for "${menu.selectionText.slice(0, 14)}..."`} />
-            <MenuItem onClick={handleCopyQuote} icon={MessageSquare} label="Copy as Markdown Quote" />
-          </div>
-        )}
-
-        {/* Context: Clicked on a Link */}
-        {menu.contextType === 'link' && (
-          <div>
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider truncate">
-              Link: {menu.linkText || 'Target'}
-            </div>
-            <MenuItem onClick={() => handleOpenLink(false)} icon={ExternalLink} label="Open Link" />
-            <MenuItem onClick={() => handleOpenLink(true)} icon={ExternalLink} label="Open in New Tab" />
-            <MenuItem onClick={handleCopyLink} icon={LinkIcon} label="Copy Link Address" />
-          </div>
-        )}
-
-        {/* Context: Clicked on an Image */}
-        {menu.contextType === 'image' && (
-          <div>
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-              Image Options
-            </div>
-            <MenuItem onClick={handleOpenImage} icon={Maximize2} label="Open Image in New Window" />
-            <MenuItem onClick={handleCopyImageAddress} icon={Copy} label="Copy Image Address" />
-          </div>
-        )}
-
-        {/* Context: Chat Message / Discussion Bubble */}
-        {menu.contextType === 'message' && (
-          <div>
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-              Message Actions
-            </div>
-            <MenuItem onClick={handleCopyMessage} icon={Copy} label="Copy Message Text" />
-            <div className="my-1.5 border-t border-white/10" />
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-              Quick Reaction
-            </div>
-            <div className="flex items-center justify-between gap-1 px-1.5 py-1">
-              {['👍', '❤️', '😂', '🚀', '🔥', '👏'].map((emoji) => (
                 <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => {
-                    handleClose()
-                    void navigator.clipboard.writeText(emoji)
-                    showToast(`Reaction ${emoji} copied`)
-                  }}
-                  className="flex h-6 w-6 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-sm"
+                  type="submit"
+                  disabled={isSubmittingReport || !selectedReason}
+                  className="flex items-center gap-2 rounded-xl bg-red-500 hover:bg-red-600 px-4 py-2 text-xs font-medium text-white shadow-lg shadow-red-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {emoji}
+                  {isSubmittingReport ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Flag size={13} />
+                      Submit Report
+                    </>
+                  )}
                 </button>
-              ))}
-            </div>
+              </div>
+            </form>
           </div>
-        )}
-
-        {/* Universal Page / Navigation Section */}
-        <div className="my-1.5 border-t border-white/10" />
-        <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-          Orbit Navigation
         </div>
+      )}
 
-        <div className="grid grid-cols-3 gap-1 px-1 mb-1">
-          <button
-            type="button"
-            title="Go Back"
-            onClick={() => {
-              handleClose()
-              window.history.back()
-            }}
-            className="flex items-center justify-center py-1 rounded-lg bg-white/[0.04] hover:bg-white/10 text-white transition-colors"
-          >
-            <ArrowLeft size={13} />
-          </button>
-          <button
-            type="button"
-            title="Go Forward"
-            onClick={() => {
-              handleClose()
-              window.history.forward()
-            }}
-            className="flex items-center justify-center py-1 rounded-lg bg-white/[0.04] hover:bg-white/10 text-white transition-colors"
-          >
-            <ArrowRight size={13} />
-          </button>
-          <button
-            type="button"
-            title="Reload Page"
-            onClick={() => {
-              handleClose()
-              window.location.reload()
-            }}
-            className="flex items-center justify-center py-1 rounded-lg bg-white/[0.04] hover:bg-white/10 text-white transition-colors"
-          >
-            <RotateCw size={13} />
-          </button>
-        </div>
+      {/* Dedicated Right-Click Menu */}
+      {menu.isOpen && (
+        <div
+          ref={menuRef}
+          style={{ left: `${menu.x}px`, top: `${menu.y}px` }}
+          className="context-menu-box fixed z-[999999] w-[235px] max-h-[88vh] overflow-y-auto rounded-2xl border border-white/15 bg-[#0B0F19]/95 p-1.5 text-xs text-[#CBD5E1] shadow-2xl backdrop-blur-2xl ring-1 ring-black/50 select-none animate-in fade-in zoom-in-95 duration-100"
+        >
+          {/* Context: Text Input Field */}
+          {menu.contextType === 'input' && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Text Editing
+              </div>
+              <MenuItem onClick={handleInputCut} icon={Scissors} label="Cut" shortcut="Ctrl+X" />
+              <MenuItem onClick={handleInputCopy} icon={Copy} label="Copy" shortcut="Ctrl+C" />
+              <MenuItem onClick={() => void handleInputPaste()} icon={Clipboard} label="Paste" shortcut="Ctrl+V" />
+              <MenuItem onClick={handleInputSelectAll} icon={CheckSquare} label="Select All" shortcut="Ctrl+A" />
+              <MenuItem onClick={handleInputClear} icon={Trash2} label="Clear Field" />
 
-        {location.pathname !== '/dashboard' && (
-          <MenuItem
-            onClick={() => {
-              handleClose()
-              navigate('/dashboard')
-            }}
-            icon={Home}
-            label="Dashboard"
-          />
-        )}
+              <div className="my-1.5 border-t border-white/10" />
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Quick Emojis
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-1 px-1.5 py-1">
+                {EMOJI_LIST.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => handleInsertEmoji(emoji)}
+                    className="flex h-6 w-6 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-sm"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-        <MenuItem
-          onClick={() => {
-            handleClose()
-            navigate('/friends')
-          }}
-          icon={Users}
-          label="Friends Hub"
-        />
+          {/* Context: Selected Text on Page */}
+          {menu.contextType === 'selection' && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Selected Text
+              </div>
+              <MenuItem onClick={handleCopySelection} icon={Copy} label="Copy Selection" shortcut="Ctrl+C" />
+              <MenuItem onClick={handleSearchWeb} icon={Search} label={`Search web for "${menu.selectionText.slice(0, 14)}..."`} />
+              <MenuItem onClick={handleCopyQuote} icon={MessageSquare} label="Copy as Markdown Quote" />
+            </div>
+          )}
 
-        <MenuItem
-          onClick={() => {
-            handleClose()
-            navigate('/groups')
-          }}
-          icon={UsersRound}
-          label="Groups"
-        />
+          {/* Context: Clicked on a Link */}
+          {menu.contextType === 'link' && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider truncate">
+                Link: {menu.linkText || 'Target'}
+              </div>
+              <MenuItem onClick={() => handleOpenLink(false)} icon={ExternalLink} label="Open Link" />
+              <MenuItem onClick={() => handleOpenLink(true)} icon={ExternalLink} label="Open in New Tab" />
+              <MenuItem onClick={handleCopyLink} icon={LinkIcon} label="Copy Link Address" />
+            </div>
+          )}
 
-        <MenuItem
-          onClick={() => {
-            handleClose()
-            navigate('/support')
-          }}
-          icon={LifeBuoy}
-          label="Support & Help"
-        />
+          {/* Context: Clicked on an Image */}
+          {menu.contextType === 'image' && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Image Options
+              </div>
+              <MenuItem onClick={handleOpenImage} icon={Maximize2} label="Open Image in New Window" />
+              <MenuItem onClick={handleCopyImageAddress} icon={Copy} label="Copy Image Address" />
+            </div>
+          )}
 
-        <div className="my-1.5 border-t border-white/10" />
+          {/* Context: Chat Message / Discussion Bubble */}
+          {menu.contextType === 'message' && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Message Actions
+              </div>
+              <MenuItem onClick={handleCopyMessage} icon={Copy} label="Copy Message Text" />
+              <MenuItem
+                onClick={() => handleOpenReport('message')}
+                icon={Flag}
+                label="Report Message"
+                highlightDanger
+              />
 
-        <MenuItem onClick={handleCopyPageUrl} icon={Share2} label="Copy Page Link" />
-        <MenuItem
-          onClick={() => void handleToggleTheme()}
-          icon={document.documentElement.dataset.theme === 'light' ? Moon : Sun}
-          label={`Switch to ${document.documentElement.dataset.theme === 'light' ? 'Dark' : 'Light'} Mode`}
-        />
-        <MenuItem
-          onClick={() => {
-            handleClose()
-            navigate('/settings')
-          }}
-          icon={Settings}
-          label="Settings"
-        />
+              {(menu.chatId || menu.isChatRoute) && (
+                <MenuItem
+                  onClick={() => handleOpenReport('chat')}
+                  icon={ShieldAlert}
+                  label="Report This Chat"
+                  highlightDanger
+                />
+              )}
 
-        {isAdmin && (
-          <>
-            <div className="my-1.5 border-t border-white/10" />
+              <div className="my-1.5 border-t border-white/10" />
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Quick Reaction
+              </div>
+              <div className="flex items-center justify-between gap-1 px-1.5 py-1">
+                {['👍', '❤️', '😂', '🚀', '🔥', '👏'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => {
+                      handleClose()
+                      void navigator.clipboard.writeText(emoji)
+                      showToast(`Reaction ${emoji} copied`)
+                    }}
+                    className="flex h-6 w-6 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-sm"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Context: Inside a Chat / Clicked on Chat Card */}
+          {menu.contextType === 'chat' && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Chat Actions
+              </div>
+              <MenuItem
+                onClick={() => handleOpenReport('chat')}
+                icon={Flag}
+                label={menu.chatName ? `Report "${menu.chatName.slice(0, 16)}..."` : 'Report This Chat'}
+                highlightDanger
+              />
+            </div>
+          )}
+
+          {/* If on a chat route but clicked default page area, still provide Report This Chat */}
+          {menu.contextType === 'default' && menu.isChatRoute && (
+            <div>
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+                Chat Actions
+              </div>
+              <MenuItem
+                onClick={() => handleOpenReport('chat')}
+                icon={Flag}
+                label={menu.chatName ? `Report "${menu.chatName.slice(0, 16)}..."` : 'Report This Chat'}
+                highlightDanger
+              />
+            </div>
+          )}
+
+          {/* Universal Page / Navigation Section */}
+          <div className="my-1.5 border-t border-white/10" />
+          <div className="px-2.5 py-1 text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+            Orbit Navigation
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 px-1 mb-1">
+            <button
+              type="button"
+              title="Go Back"
+              onClick={() => {
+                handleClose()
+                window.history.back()
+              }}
+              className="flex items-center justify-center py-1 rounded-lg bg-white/[0.04] hover:bg-white/10 text-white transition-colors"
+            >
+              <ArrowLeft size={13} />
+            </button>
+            <button
+              type="button"
+              title="Go Forward"
+              onClick={() => {
+                handleClose()
+                window.history.forward()
+              }}
+              className="flex items-center justify-center py-1 rounded-lg bg-white/[0.04] hover:bg-white/10 text-white transition-colors"
+            >
+              <ArrowRight size={13} />
+            </button>
+            <button
+              type="button"
+              title="Reload Page"
+              onClick={() => {
+                handleClose()
+                window.location.reload()
+              }}
+              className="flex items-center justify-center py-1 rounded-lg bg-white/[0.04] hover:bg-white/10 text-white transition-colors"
+            >
+              <RotateCw size={13} />
+            </button>
+          </div>
+
+          {location.pathname !== '/dashboard' && (
             <MenuItem
               onClick={() => {
                 handleClose()
-                navigate('/admin/dashboard')
+                navigate('/dashboard')
               }}
-              icon={ShieldCheck}
-              label="Admin Mission Control"
-              highlight
+              icon={Home}
+              label="Dashboard"
             />
-          </>
-        )}
-      </div>
+          )}
+
+          <MenuItem
+            onClick={() => {
+              handleClose()
+              navigate('/friends')
+            }}
+            icon={Users}
+            label="Friends Hub"
+          />
+
+          <MenuItem
+            onClick={() => {
+              handleClose()
+              navigate('/groups')
+            }}
+            icon={UsersRound}
+            label="Groups"
+          />
+
+          <MenuItem
+            onClick={() => {
+              handleClose()
+              navigate('/support')
+            }}
+            icon={LifeBuoy}
+            label="Support & Help"
+          />
+
+          <div className="my-1.5 border-t border-white/10" />
+
+          <MenuItem onClick={handleCopyPageUrl} icon={Share2} label="Copy Page Link" />
+          <MenuItem
+            onClick={() => void handleToggleTheme()}
+            icon={document.documentElement.dataset.theme === 'light' ? Moon : Sun}
+            label={`Switch to ${document.documentElement.dataset.theme === 'light' ? 'Dark' : 'Light'} Mode`}
+          />
+          <MenuItem
+            onClick={() => {
+              handleClose()
+              navigate('/settings')
+            }}
+            icon={Settings}
+            label="Settings"
+          />
+
+          {isAdmin && (
+            <>
+              <div className="my-1.5 border-t border-white/10" />
+              <MenuItem
+                onClick={() => {
+                  handleClose()
+                  navigate('/admin/dashboard')
+                }}
+                icon={ShieldCheck}
+                label="Admin Mission Control"
+                highlight
+              />
+            </>
+          )}
+        </div>
+      )}
     </>
   )
 }
@@ -627,24 +980,37 @@ function MenuItem({
   label,
   shortcut,
   highlight = false,
+  highlightDanger = false,
 }: {
   onClick: () => void
   icon: React.ComponentType<{ size: number; className?: string }>
   label: string
   shortcut?: string
   highlight?: boolean
+  highlightDanger?: boolean
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-left text-xs transition-colors ${
-        highlight
+        highlightDanger
+          ? 'text-red-400 hover:bg-red-500/15 hover:text-red-300 font-medium'
+          : highlight
           ? 'text-[#93C5FD] hover:bg-[#4F8CFF]/20 hover:text-white font-medium'
           : 'text-[#CBD5E1] hover:bg-white/[0.08] hover:text-white'
       }`}
     >
-      <Icon size={14} className={highlight ? 'text-[#4F8CFF]' : 'text-[#94A3B8]'} />
+      <Icon
+        size={14}
+        className={
+          highlightDanger
+            ? 'text-red-400'
+            : highlight
+            ? 'text-[#4F8CFF]'
+            : 'text-[#94A3B8]'
+        }
+      />
       <span className="truncate flex-1">{label}</span>
       {shortcut && <span className="text-[10px] font-mono text-[#64748B] ml-auto">{shortcut}</span>}
     </button>

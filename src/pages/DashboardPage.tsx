@@ -162,7 +162,14 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-1">
                 {recentChats.map((c) => (
-                  <Link key={c.id} to={c.isGroup && c.groupId ? `/groups/${c.groupId}/chat` : c.type === 'dm' ? `/messages/${c.id}` : '/study-match'} className={`flex items-center gap-3 rounded-xl p-2.5 transition ${c.unread ? 'bg-[#4F8CFF]/[0.08] ring-1 ring-[#4F8CFF]/70 shadow-[0_0_18px_rgba(79,140,255,0.22)]' : 'hover:bg-white/[0.05]'}`}>
+                  <Link
+                    key={c.id}
+                    to={c.isGroup && c.groupId ? `/groups/${c.groupId}/chat` : c.type === 'dm' ? `/messages/${c.id}` : '/study-match'}
+                    data-chat-card="true"
+                    data-chat-id={c.id}
+                    data-chat-name={c.name}
+                    className={`flex items-center gap-3 rounded-xl p-2.5 transition ${c.unread ? 'bg-[#4F8CFF]/[0.08] ring-1 ring-[#4F8CFF]/70 shadow-[0_0_18px_rgba(79,140,255,0.22)]' : 'hover:bg-white/[0.05]'}`}
+                  >
                     <div className="relative">
                       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#7C3AED] text-sm font-semibold">
                         {c.isGroup ? 'G' : c.name === 'Deleted User' ? 'D' : c.name[0]?.toUpperCase()}

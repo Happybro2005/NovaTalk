@@ -157,10 +157,24 @@ export default function DirectMessagePage() {
             <p className="text-sm text-[#CBD5E1]">Conversation unavailable.</p>
           ) : (
             <>
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4">
+              <div
+                data-chat-container="true"
+                data-chat-id={conversationId || ''}
+                data-chat-name={otherUser?.novaName || 'Direct Message'}
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl border border-white/10 bg-black/20 p-4"
+              >
                 {messages.length === 0 ? <p className="text-sm text-[#CBD5E1]">No messages yet. Say hello.</p> : messages.map((item) => (
                   <div key={item.id} className={`flex w-full ${item.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`w-fit max-w-[50%] rounded-xl p-3 text-sm text-white ${item.senderId === currentUser?.uid ? 'bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED]' : 'bg-white/[0.06]'}`}>
+                    <div
+                      data-message-bubble="true"
+                      data-message-id={item.id}
+                      data-message-text={item.text}
+                      data-message-sender-id={item.senderId}
+                      data-message-sender-name={item.senderId === currentUser?.uid ? 'You' : (otherUser ? item.senderNovaName : 'Deleted User')}
+                      data-chat-id={conversationId || ''}
+                      data-chat-name={otherUser?.novaName || 'Direct Message'}
+                      className={`w-fit max-w-[50%] rounded-xl p-3 text-sm text-white ${item.senderId === currentUser?.uid ? 'bg-gradient-to-r from-[#4F8CFF] to-[#7C3AED]' : 'bg-white/[0.06]'}`}
+                    >
                       <p className="mb-1 text-xs font-semibold text-[#BFDBFE]">{item.senderId === currentUser?.uid ? 'You' : (otherUser ? item.senderNovaName : 'Deleted User')}</p>
                       <p className="break-words">{item.text}</p>
                       {item.id === latestOutgoingMessage?.id && otherReadAt >= item.createdAt && item.createdAt > 0 && <p className="mt-1 text-right text-[10px] text-[#BFDBFE]/70">Seen</p>}

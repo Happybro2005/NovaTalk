@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Radar, Send, SkipForward, UserPlus } from 'lucide-react'
+import { Flag, Loader2, Radar, Send, SkipForward, UserPlus } from 'lucide-react'
 import { collection, doc, getDoc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore'
 import AppShell from '../components/AppShell'
 import { Badge, Button, GlassCard, Input, Eyebrow } from '../components/ui'
@@ -421,13 +421,28 @@ export default function StrangerChatPage() {
                 </div>
                 <Link className="text-sm text-[#4F8CFF] hover:underline" to="/dashboard">Back to dashboard</Link>
               </div>
-              <div className="flex-1 space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div
+                data-chat-container="true"
+                data-chat-id={conversationId || ''}
+                data-chat-name="Stranger Chat"
+                className="flex-1 space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4"
+              >
                 {messages.length === 0 ? (
                   <p className="text-sm text-[#CBD5E1]">No messages yet. Say hello.</p>
                 ) : (
                   messages.map((msg) => (
                       <div key={msg.id} className={`flex w-full ${msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}>
-                        <div onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: msg.id, x: event.clientX, y: event.clientY }) }} className={`w-fit max-w-[50%] rounded-xl bg-white/[0.05] p-3 text-sm text-white ${msg.highlighted ? 'ring-2 ring-[#F59E0B]' : ''}`}>
+                        <div
+                          data-message-bubble="true"
+                          data-message-id={msg.id}
+                          data-message-text={msg.text}
+                          data-message-sender-id={msg.senderId}
+                          data-message-sender-name={msg.senderId === currentUser?.uid ? 'You' : (matchedUser?.novaName || 'Stranger')}
+                          data-chat-id={conversationId || ''}
+                          data-chat-name="Stranger Chat"
+                          onContextMenu={(event) => { event.preventDefault(); setMessageMenu({ id: msg.id, x: event.clientX, y: event.clientY }) }}
+                          className={`w-fit max-w-[50%] rounded-xl bg-white/[0.05] p-3 text-sm text-white ${msg.highlighted ? 'ring-2 ring-[#F59E0B]' : ''}`}
+                        >
                           {msg.text} {msg.edited && !msg.deleted && <span className="text-xs text-[#CBD5E1]">(edited)</span>}
                           {msg.id === latestOutgoingMessage?.id && matchedUserReadAt >= msg.createdAt && msg.createdAt > 0 && <div className="mt-1 text-right text-[10px] text-[#BFDBFE]/70">Seen</div>}
                           {msg.pinned && <div className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-[#FCD34D]">Pinned</div>}
@@ -492,6 +507,27 @@ export default function StrangerChatPage() {
           {isMine && !selectedMessage.deleted && <button type="button" onClick={() => void handleMessageAction('delete')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#FCA5A5] hover:bg-white/10">Delete</button>}
           <button type="button" onClick={() => void handleMessageAction('pinned')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.pinned ? 'Unpin' : 'Pin'}</button>
           <button type="button" onClick={() => void handleMessageAction('highlighted')} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#E2E8F0] hover:bg-white/10">{selectedMessage.highlighted ? 'Remove highlight' : 'Highlight'}</button>
+          <div className="my-1 border-t border-white/10" />
+          <button
+            type="button"
+            onClick={() => {
+              setMessageMenu(null)
+              window.dispatchEvent(
+                new CustomEvent('novatalk:open-report', {
+                  detail: {
+                    type: 'message',
+                    targetId: selectedMessage.id,
+                    text: selectedMessage.text,
+                    senderName: matchedUser?.novaName || 'Stranger',
+                    chatName: 'Stranger Chat',
+                  },
+                })
+              )
+            }}
+            className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-red-500/10"
+          >
+            <Flag size={14} /> Report Message
+          </button>
         </> })()}
       </div>}
 
