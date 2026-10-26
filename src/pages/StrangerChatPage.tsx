@@ -520,8 +520,11 @@ export default function StrangerChatPage() {
                       detail: {
                         type: 'message',
                         targetId: selectedMessage.id,
-                        text: selectedMessage.text,
+                        senderId: selectedMessage.senderId || matchedUser?.uid,
+                        reportedUserId: selectedMessage.senderId || matchedUser?.uid,
                         senderName: matchedUser?.novaName || 'Stranger',
+                        reportedUserName: matchedUser?.novaName || 'Stranger',
+                        text: selectedMessage.text,
                         chatName: 'Stranger Chat',
                       },
                     })

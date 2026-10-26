@@ -265,8 +265,11 @@ export default function GroupChatPage() {
                       detail: {
                         type: 'message',
                         targetId: selectedMessage.id,
-                        text: selectedMessage.text,
+                        senderId: selectedMessage.senderId,
+                        reportedUserId: selectedMessage.senderId,
                         senderName: selectedMessage.senderNovaName,
+                        reportedUserName: selectedMessage.senderNovaName,
+                        text: selectedMessage.text,
                         chatName: group?.name || 'Group Chat',
                       },
                     })

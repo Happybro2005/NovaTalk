@@ -3,7 +3,8 @@ import { db } from '../firebase'
 
 export interface CreateReportParams {
   reporterId: string
-  targetType: 'user' | 'message' | 'post' | 'community'
+  reporterName?: string
+  targetType: 'user' | 'message' | 'chat' | 'post' | 'community'
   targetId: string
   reportedUserId?: string
   reportedUserName?: string
@@ -15,6 +16,7 @@ export interface CreateReportParams {
 export const reportService = {
   async submitReport({
     reporterId,
+    reporterName,
     targetType,
     targetId,
     reportedUserId,
@@ -40,6 +42,7 @@ export const reportService = {
 
     const docRef = await addDoc(collection(db, 'reports'), {
       reporterId,
+      reporterName: reporterName || '',
       targetType,
       targetId: targetId || 'unknown',
       reportedUserId: reportedUserId || (targetType === 'user' ? targetId : ''),

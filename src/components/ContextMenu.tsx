@@ -141,8 +141,11 @@ export default function ContextMenu() {
       const customEvent = e as CustomEvent<{
         type?: 'message' | 'chat'
         targetId?: string
-        text?: string
+        reportedUserId?: string
+        reportedUserName?: string
+        senderId?: string
         senderName?: string
+        text?: string
         chatName?: string
         isSelf?: boolean
       }>
@@ -156,6 +159,8 @@ export default function ContextMenu() {
           isOpen: true,
           type: customEvent.detail.type || 'message',
           targetId: customEvent.detail.targetId || 'unknown',
+          reportedUserId: customEvent.detail.reportedUserId || customEvent.detail.senderId,
+          reportedUserName: customEvent.detail.reportedUserName || customEvent.detail.senderName,
           text: customEvent.detail.text,
           senderName: customEvent.detail.senderName,
           chatName: customEvent.detail.chatName,
@@ -390,6 +395,7 @@ export default function ContextMenu() {
 
       await reportService.submitReport({
         reporterId: currentUser.uid,
+        reporterName: currentUser.displayName || currentUser.email || 'User',
         targetType: reportModal?.type === 'message' ? 'message' : 'user',
         targetId: reportModal?.targetId || 'unknown',
         reportedUserId: reportModal?.reportedUserId,

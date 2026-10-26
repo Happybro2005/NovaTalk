@@ -259,7 +259,8 @@ export interface AcademicDoubt {
 export interface Report {
   id: string
   reporterId: string
-  targetType: 'user' | 'message' | 'post' | 'community'
+  reporterName?: string
+  targetType: 'user' | 'message' | 'chat' | 'post' | 'community'
   targetId: string
   reportedUserId?: string
   reportedUserName?: string

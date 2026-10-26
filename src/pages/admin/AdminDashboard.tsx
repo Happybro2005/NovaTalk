@@ -194,8 +194,22 @@ export default function AdminDashboard() {
   }
 
 
+  const getUserDisplayName = (uid?: string, fallback = 'User') => {
+    if (!uid) return fallback
+    const u = users.find((item) => item.uid === uid)
+    if (u) {
+      return u.novaName || u.displayName || (u.username ? `@${u.username}` : fallback)
+    }
+    return fallback
+  }
+
   async function handleConfirmBan() {
     if (!banModal) return
+    if (!banModal.offenderId) {
+      setError('Please select a user to ban.')
+      return
+    }
+
     try {
       setIsSubmittingBan(true)
       let days: number | null = null
@@ -209,6 +223,12 @@ export default function AdminDashboard() {
       }
 
       const reason = adminBanReason.trim() || 'Violation of NovaTalk Community Guidelines'
+      const offender = users.find((u) => u.uid === banModal.offenderId)
+      const targetName =
+        banModal.offenderName ||
+        offender?.novaName ||
+        offender?.displayName ||
+        (offender?.username ? `@${offender.username}` : 'User')
 
       await adminService.banUser(banModal.offenderId, days, reason)
 
@@ -218,7 +238,7 @@ export default function AdminDashboard() {
 
         // Requirement: "the action notification will reach to the person who reported"
         const durationText = days ? `for ${days} day${days > 1 ? 's' : ''}` : 'permanently'
-        const notifMsg = `Update on your report: The reported user (${banModal.offenderName}) has been banned ${durationText} following moderation review. Thank you for keeping our orbit safe.`
+        const notifMsg = `Update on your report: The reported user (${targetName}) has been banned ${durationText} following moderation review. Thank you for keeping our orbit safe.`
         await notificationService.sendNotification(banModal.report.reporterId, notifMsg, 'system')
 
         // Remove from pending reports list
@@ -236,7 +256,7 @@ export default function AdminDashboard() {
       )
 
       setActionSuccess(
-        `User "${banModal.offenderName}" has been banned ${days ? `for ${days} days` : 'permanently'}.${banModal.report ? ' Action notification sent to reporter.' : ''}`
+        `User "${targetName}" has been banned ${days ? `for ${days} days` : 'permanently'}.${banModal.report ? ' Action notification sent to reporter.' : ''}`
       )
       setBanModal(null)
       setAdminBanReason('')
@@ -682,7 +702,7 @@ export default function AdminDashboard() {
                             <span className="text-[11px] text-[#64748B]">Offline</span>
                           )}
                         </div>
-                        <p className="truncate text-xs text-[#CBD5E1]/70">{user.email || user.uid}</p>
+                        <p className="truncate text-xs text-[#CBD5E1]/70">{user.email || (user.username ? `@${user.username}` : 'NovaTalk Member')}</p>
                       </div>
                     </div>
 
@@ -760,61 +780,78 @@ export default function AdminDashboard() {
             ) : (
               reports.map((report) => {
                 const offenderId = report.reportedUserId || (report.targetType === 'user' ? report.targetId : '')
-                const offenderName = report.reportedUserName || (offenderId ? users.find((u) => u.uid === offenderId)?.displayName : null) || 'Reported User'
+                const offenderUser = offenderId ? users.find((u) => u.uid === offenderId) : null
+                const offenderName =
+                  report.reportedUserName ||
+                  offenderUser?.novaName ||
+                  offenderUser?.displayName ||
+                  (offenderUser?.username ? `@${offenderUser.username}` : null) ||
+                  (offenderId ? getUserDisplayName(offenderId) : '')
+
+                const reporterUser = users.find((u) => u.uid === report.reporterId)
+                const reporterName =
+                  report.reporterName ||
+                  reporterUser?.novaName ||
+                  reporterUser?.displayName ||
+                  (reporterUser?.username ? `@${reporterUser.username}` : null) ||
+                  reporterUser?.email ||
+                  'User'
 
                 return (
                   <div key={report.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <p className="text-sm font-medium text-white">{report.reason}</p>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-[#CBD5E1]">
-                          <span>Target: <strong className="text-white">{report.targetType}</strong> ({report.targetId})</span>
-                          {offenderId && (
-                            <span className="rounded bg-red-500/15 border border-red-500/30 px-2 py-0.5 text-[11px] text-red-300">
-                              Offender: <strong>{offenderName}</strong> ({offenderId})
+                          {report.targetType === 'user' ? (
+                            <span className="rounded bg-white/5 border border-white/10 px-2 py-0.5 text-[11px] text-[#E2E8F0]">
+                              Target: <strong className="text-white">User {offenderName ? `(${offenderName})` : ''}</strong>
+                            </span>
+                          ) : report.targetType === 'chat' ? (
+                            <span className="rounded bg-white/5 border border-white/10 px-2 py-0.5 text-[11px] text-[#E2E8F0]">
+                              Target: <strong className="text-white">Chat {report.reportedUserName ? `(${report.reportedUserName})` : ''}</strong>
+                            </span>
+                          ) : (
+                            <span className="rounded bg-white/5 border border-white/10 px-2 py-0.5 text-[11px] text-[#E2E8F0]">
+                              Target: <strong className="text-white">Message</strong>
                             </span>
                           )}
-                          <span className="text-[#94A3B8]">Reported by: {report.reporterId}</span>
+
+                          {offenderName && (
+                            <span className="rounded bg-red-500/15 border border-red-500/30 px-2 py-0.5 text-[11px] text-red-300">
+                              Offender: <strong>{offenderName}</strong>
+                            </span>
+                          )}
+
+                          <span className="text-[#94A3B8]">
+                            Reported by: <strong className="text-[#BFDBFE] font-medium">{reporterName}</strong>
+                          </span>
                         </div>
                       </div>
                       <Badge tone="warning">Pending</Badge>
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/5 pt-3">
-                      {offenderId ? (
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            setBanModal({
-                              isOpen: true,
-                              offenderId,
-                              offenderName,
-                              report,
-                            })
-                          }
-                          className="bg-red-500/90 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
-                        >
-                          <Ban size={14} /> Ban User
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            const manualId = window.prompt('Enter User UID to ban:')
-                            if (manualId?.trim()) {
-                              setBanModal({
-                                isOpen: true,
-                                offenderId: manualId.trim(),
-                                offenderName: manualId.trim(),
-                                report,
-                              })
-                            }
-                          }}
-                          className="bg-red-500/90 hover:bg-red-600 text-white"
-                        >
-                          <Ban size={14} /> Ban User
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const targetOffenderId = offenderId || ''
+                          const targetOffenderName = offenderName || (targetOffenderId ? getUserDisplayName(targetOffenderId) : '')
+
+                          setBanModal({
+                            isOpen: true,
+                            offenderId: targetOffenderId,
+                            offenderName: targetOffenderName,
+                            report,
+                          })
+                          setSelectedBanPreset('7')
+                          setCustomDaysInput('7')
+                          setAdminBanReason(report.reason ? `Violation reported: ${report.reason}` : '')
+                        }}
+                        className="bg-red-500/90 hover:bg-red-600 text-white shadow-md shadow-red-500/20"
+                      >
+                        <Ban size={14} /> Ban User
+                      </Button>
 
                       <Button
                         size="sm"
@@ -865,16 +902,66 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Target User Info & Selection */}
             <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-xs">
-              <p className="font-semibold text-white">Target User:</p>
-              <p className="text-[#93C5FD] font-mono mt-0.5">{banModal.offenderName} ({banModal.offenderId})</p>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-semibold text-[#CBD5E1]">User to Ban:</span>
+                {banModal.offenderId && (
+                  <button
+                    type="button"
+                    onClick={() => setBanModal((prev) => prev ? { ...prev, offenderId: '', offenderName: '' } : null)}
+                    className="text-[11px] text-[#4F8CFF] hover:underline"
+                  >
+                    Change user
+                  </button>
+                )}
+              </div>
+
+              {banModal.offenderId ? (
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-xs font-bold text-red-300 border border-red-500/30">
+                    {banModal.offenderName?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-white truncate">{banModal.offenderName}</p>
+                    {users.find((u) => u.uid === banModal.offenderId)?.username && (
+                      <p className="text-[11px] text-[#94A3B8] truncate">
+                        @{users.find((u) => u.uid === banModal.offenderId)?.username}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <select
+                  aria-label="Select user to ban"
+                  value={banModal.offenderId}
+                  onChange={(e) => {
+                    const selUid = e.target.value
+                    const found = users.find((u) => u.uid === selUid)
+                    const name = found ? (found.novaName || found.displayName || (found.username ? `@${found.username}` : 'User')) : 'User'
+                    setBanModal((prev) => prev ? { ...prev, offenderId: selUid, offenderName: name } : null)
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-[#161F30] px-3 py-2 text-xs text-white outline-none focus:border-red-500"
+                >
+                  <option value="">-- Choose User by Name --</option>
+                  {users
+                    .filter((u) => u.uid !== currentUser?.uid && u.role !== 'admin')
+                    .map((u) => (
+                      <option key={u.uid} value={u.uid}>
+                        {u.novaName || u.displayName} {u.username ? `(@${u.username})` : ''} {u.accountStatus === 'banned' ? '[Already Banned]' : ''}
+                      </option>
+                    ))}
+                </select>
+              )}
+
               {banModal.report && (
-                <p className="mt-1 text-[#CBD5E1] text-[11px] border-t border-white/5 pt-1">
-                  Report Reason: {banModal.report.reason}
-                </p>
+                <div className="mt-2 text-[#CBD5E1] text-[11px] border-t border-white/5 pt-2">
+                  <span className="text-[#94A3B8]">Reported for:</span> {banModal.report.reason}
+                </div>
               )}
             </div>
 
+            {/* Ban Duration Options */}
             <div className="mt-4">
               <label className="block text-xs font-semibold text-[#CBD5E1] mb-2 uppercase tracking-wider">
                 Select Ban Duration
@@ -922,11 +1009,12 @@ export default function AdminDashboard() {
                   onClick={() => setSelectedBanPreset(selectedBanPreset === 'custom' ? '7' : 'custom')}
                   className="text-[11px] text-[#4F8CFF] hover:underline"
                 >
-                  {selectedBanPreset === 'custom' ? 'Choose preset' : 'Or enter custom days'}
+                  {selectedBanPreset === 'custom' ? 'Choose preset duration' : 'Or enter custom days'}
                 </button>
               </div>
             </div>
 
+            {/* Ban Reason / Admin Note */}
             <div className="mt-3">
               <label className="block text-xs font-semibold text-[#CBD5E1] mb-1">
                 Ban Reason / Admin Note
@@ -938,6 +1026,24 @@ export default function AdminDashboard() {
                 placeholder="E.g. Inappropriate conduct, harassment, spam..."
                 className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-white placeholder:text-[#64748B] outline-none focus:border-red-500"
               />
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {[
+                  'Harassment or Bullying',
+                  'Inappropriate Content',
+                  'Spam or Scam',
+                  'Hate Speech',
+                  'Guidelines Violation',
+                ].map((quickReason) => (
+                  <button
+                    key={quickReason}
+                    type="button"
+                    onClick={() => setAdminBanReason(quickReason)}
+                    className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-[#94A3B8] hover:bg-white/10 hover:text-white"
+                  >
+                    {quickReason}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-2.5 border-t border-white/10 pt-3">
@@ -951,9 +1057,9 @@ export default function AdminDashboard() {
               </Button>
               <Button
                 size="sm"
-                disabled={isSubmittingBan}
+                disabled={isSubmittingBan || !banModal.offenderId}
                 onClick={() => void handleConfirmBan()}
-                className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20"
+                className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 disabled:opacity-50"
               >
                 <Ban size={14} />
                 {isSubmittingBan ? 'Applying Ban...' : 'Confirm Ban & Notify Reporter'}
